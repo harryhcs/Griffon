@@ -1,0 +1,32 @@
+{
+  "name": "Griffon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "webpack-dev-server --mode development --open",
+    "build": "webpack --mode production",
+    "lint": "eslint --cache --format codeframe --ext mjs,jsx,js src test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "prop-types": "^15.7.2",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "react-hot-loader": "^4.12.18"
+  },
+  "devDependencies": {
+    "@neutrinojs/airbnb": "^9.0.0",
+    "@neutrinojs/jest": "^9.0.0",
+    "@neutrinojs/react": "^9.0.0",
+    "eslint": "^6.8.0",
+    "jest": "^24.9.0",
+    "neutrino": "^9.0.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
+  }
+}
