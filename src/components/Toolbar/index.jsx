@@ -7,7 +7,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Search from './Search/index';
 import UserProfile from './UserProfile/index';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
@@ -24,7 +24,7 @@ export default function NavigationBar() {
 
   return (
     <div className={classes.root}>
-      <AppBar position="fixed" style={{ background: 'transparent', boxShadow: 'none'}}>
+      <AppBar position="fixed" style={{ background: 'transparent', boxShadow: 'none' }}>
         <Toolbar>
           <Search />
           <UserProfile />

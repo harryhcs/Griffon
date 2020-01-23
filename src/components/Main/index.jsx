@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import ReactMapGL from 'react-map-gl';
 
 // import { makeStyles } from '@material-ui/core/styles';
-import { Subscription } from 'react-apollo';
-import moment from 'moment';
-import gql from 'graphql-tag';
+// import { Subscription } from 'react-apollo';
+// import moment from 'moment';
+// import gql from 'graphql-tag';
 
 import Toolbar from '../Toolbar/index';
 import EventsFeed from '../Events/Feed/index';
-import Pins from './pins';
+// import Pins from './pins';
 
 // const useStyles = makeStyles(theme => ({
 //   root: {
@@ -27,7 +27,7 @@ export default function Map() {
     zoom: 10,
   });
 
-  const [assets, setAssets] = useState([]);
+  // const [assets, setAssets] = useState([]);
 
   return (
     <div>
@@ -41,7 +41,7 @@ export default function Map() {
       >
         {/* <Subscription
           subscription={gql`
-            subscription { 
+            subscription {
               resources {
                 id
                 name

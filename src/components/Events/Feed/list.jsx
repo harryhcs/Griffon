@@ -1,14 +1,16 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { IconButton } from '@material-ui/core';
-import LocationIcon from '@material-ui/icons/Place'
+import { IconButton, Typography, Grid } from '@material-ui/core';
+import LocationIcon from '@material-ui/icons/Place';
 
 import { FixedSizeList } from 'react-window';
 import { Subscription } from 'react-apollo';
-import moment from "moment";
+import moment from 'moment';
 import gql from 'graphql-tag';
-import { Typography, Grid } from '@material-ui/core';
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
   },
   channel: {
     fontWeight: 'bold',
-  }
+  },
 }));
 
 function renderRow(props) {
@@ -47,8 +49,20 @@ function renderRow(props) {
         <Typography className={classes.description}>
           {data[index].description}
         </Typography>
-        <span className={classes.creator}> by {data[index].resource.name}</span><br />
-        <span className={classes.timestamp}>{moment(data[index].created_at).fromNow()} in <span className={classes.channel}>{data[index].channel.name}</span></span>
+        <span className={classes.creator}>
+          {' '}
+          by
+          {' '}
+          {data[index].resource.name}
+        </span>
+        <br />
+        <span className={classes.timestamp}>
+          {moment(data[index].created_at).fromNow()}
+          {' '}
+          in
+          {' '}
+          <span className={classes.channel}>{data[index].channel.name}</span>
+        </span>
 
       </Grid>
       <Grid item>
@@ -108,7 +122,12 @@ export default function EventList() {
         if (data) {
           return data.events.length > 0 ? (
             <div className={classes.root}>
-              <FixedSizeList height={400} itemSize={46} itemCount={data.events.length} itemData={data.events}>
+              <FixedSizeList
+                height={400}
+                itemSize={46}
+                itemCount={data.events.length}
+                itemData={data.events}
+              >
                 {renderRow}
               </FixedSizeList>
             </div>

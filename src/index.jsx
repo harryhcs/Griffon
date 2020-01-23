@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import { Auth0Provider } from './auth/service.jsx';
+import { Auth0Provider } from './auth/service';
 import config from './auth_config.json';
 // A function that routes the user to the right place
 // after login

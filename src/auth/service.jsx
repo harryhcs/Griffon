@@ -28,15 +28,15 @@ export const Auth0Provider = ({
         onRedirectCallback(appState);
       }
 
-      const isAuthenticated = await auth0FromHook.isAuthenticated();
+      const isAuthenticatedAwait = await auth0FromHook.isAuthenticated();
 
-      setIsAuthenticated(isAuthenticated);
+      setIsAuthenticated(isAuthenticatedAwait);
 
       if (isAuthenticated) {
-        const user = await auth0FromHook.getUser();
-        const idToken = await auth0FromHook.getIdTokenClaims();
-        setUser(user);
-        setIdToken(idToken);
+        const userAwait = await auth0FromHook.getUser();
+        const idTokenAwait = await auth0FromHook.getIdTokenClaims();
+        setUser(userAwait);
+        setIdToken(idTokenAwait);
       }
 
       setLoading(false);
@@ -54,22 +54,22 @@ export const Auth0Provider = ({
     } finally {
       setPopupOpen(false);
     }
-    const user = await auth0Client.getUser();
-    const idToken = await auth0Client.getTokenSilently();
-    setUser(user);
-    setIdToken(idToken);
+    const userAwait = await auth0Client.getUser();
+    const idTokenAwait = await auth0Client.getTokenSilently();
+    setUser(userAwait);
+    setIdToken(idTokenAwait);
     setIsAuthenticated(true);
   };
 
   const handleRedirectCallback = async () => {
     setLoading(true);
     await auth0Client.handleRedirectCallback();
-    const user = await auth0Client.getUser();
-    const idToken = await auth0Client.getTokenSilently();
+    const userAwait = await auth0Client.getUser();
+    const idTokenAwait = await auth0Client.getTokenSilently();
     setLoading(false);
     setIsAuthenticated(true);
-    setUser(user);
-    setIdToken(idToken);
+    setUser(userAwait);
+    setIdToken(idTokenAwait);
   };
   return (
     <Auth0Context.Provider
