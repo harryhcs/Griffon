@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 
-import Search from './Search/index';
+import Search from '../Search/index';
 import UserProfile from './UserProfile/index';
 
 const useStyles = makeStyles((theme) => ({

@@ -37,7 +37,8 @@
     "react-map-gl-geocoder": "^2.0.11",
     "react-router-dom": "^5.1.2",
     "react-window": "^1.8.5",
-    "subscriptions-transport-ws": "^0.9.16"
+    "subscriptions-transport-ws": "^0.9.16",
+    "typeface-roboto": "0.0.75"
   },
   "devDependencies": {
     "@neutrinojs/airbnb": "^9.0.0",

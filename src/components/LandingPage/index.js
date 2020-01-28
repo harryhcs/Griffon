@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
 
-import { useAuth0 } from '../../auth/service';
+import { useAuth0 } from '../Auth';
 import './index.css';
 
 const LandingPage = () => {

@@ -15,8 +15,8 @@ import gql from 'graphql-tag';
 const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
-    height: 400,
-    backgroundColor: theme.palette.background.paper,
+    height: '100%',
+    // backgroundColor: theme.palette.background.paper,
   },
   item: {
     padding: 10,
@@ -24,7 +24,12 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
   },
   description: {
-
+    position: 'relative',
+    display: 'block',
+    width: 280,
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
   },
   timestamp: {
     color: 'grey',
@@ -49,20 +54,19 @@ function renderRow(props) {
         <Typography className={classes.description}>
           {data[index].description}
         </Typography>
-        <span className={classes.creator}>
+        <Typography className={classes.creator}>
           {' '}
           by
           {' '}
           {data[index].resource.name}
-        </span>
-        <br />
-        <span className={classes.timestamp}>
+        </Typography>
+        <Typography className={classes.timestamp}>
           {moment(data[index].created_at).fromNow()}
           {' '}
           in
           {' '}
           <span className={classes.channel}>{data[index].channel.name}</span>
-        </span>
+        </Typography>
 
       </Grid>
       <Grid item>
@@ -84,25 +88,25 @@ export default function EventList() {
       subscription={gql`
       subscription { 
         events(order_by: {created_at: desc}) {
+              id
+              created_at
+              description
+              resource {
                 id
+                name
+              }
+              locations {
+                latitude
+                longitude
                 created_at
-                description
-                resource {
-                  id
-                  name
-                }
-                locations {
-                  latitude
-                  longitude
-                  created_at
-                }
-                channel {
-                  id
-                  name
-                }
+              }
+              channel {
+                id
+                name
               }
             }
-        `}
+          }
+      `}
     // onSubscriptionData={
     //   ({ subscriptionData, client }) => {
     //     if (subscriptionData.data.events.length > 0) {
@@ -123,7 +127,7 @@ export default function EventList() {
           return data.events.length > 0 ? (
             <div className={classes.root}>
               <FixedSizeList
-                height={400}
+                height={500}
                 itemSize={46}
                 itemCount={data.events.length}
                 itemData={data.events}

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useEffect } from 'react';
 import { Route } from 'react-router-dom';
-import { useAuth0 } from '../auth/service';
+import { useAuth0 } from './Auth';
 
 // eslint-disable-next-line react/prop-types
 const PrivateRoute = ({ component: Component, path, ...rest }) => {
