@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import { Grid } from '@material-ui/core';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 
@@ -10,11 +12,11 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Subscription } from 'react-apollo';
 import gql from 'graphql-tag';
 
-import Toolbar from '../Toolbar/index';
 import EventsFeed from '../Events/Feed/index';
 import Event from '../Events/event';
+import CreateEvent from '../Events/createEvent';
 import Search from '../Search';
-import Pins from './pins';
+import Actions from '../Actions';
 
 const useStyles = makeStyles((theme) => ({
   leftContainer: {
@@ -42,6 +44,15 @@ const useStyles = makeStyles((theme) => ({
     height: '100%',
     background: 'white',
   },
+  contextMenu: {
+    zIndex: 1000,
+  },
+  createEvent: {
+    // position: 'absolute',
+    // bottom: 0,
+    zIndex: 1000,
+    // flex: 1,
+  },
 }));
 
 export default function Map() {
@@ -53,11 +64,32 @@ export default function Map() {
     longitude: 18.9376,
     zoom: 10,
   });
+  const [anchorEl, setAnchorEl] = useState(null);
   const [event, setEvent] = useState(null);
   const [showEvents, setShowEvents] = useState(false);
+  const [showCreateEvent, setShowCreateEvents] = useState(false);
+
+  const handleClick = (event) => {
+    event.preventDefault();
+    console.log(event);
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   const showEvent = (clickedEvent) => {
     setShowEvents(true);
     setEvent(clickedEvent);
+  };
+  const showCreateEventContaier = () => {
+    setShowCreateEvents(true);
+  };
+
+  const handleContext = (event) => {
+    console.log(event.lngLat);
+    event.preventDefault();
   };
 
   return (
@@ -71,24 +103,70 @@ export default function Map() {
         </Grid>
         <Grid className={classes.events} container>
           <Grid item>
-            <EventsFeed />
+            <EventsFeed showEvent={showEvent} />
           </Grid>
           {
             showEvents ? (
               <Grid item className={classes.event}>
-                <Event event={event} setShowEvents={setShowEvents}/>
+                <Event event={event} setShowEvents={setShowEvents} />
+              </Grid>
+            ) : null
+          }
+          {
+            showCreateEvent ? (
+              <Grid item className={classes.event}>
+                <CreateEvent setShowCreateEvents={setShowCreateEvents} />
               </Grid>
             ) : null
           }
         </Grid>
       </Grid>
+      <Actions setShowCreateEvents={setShowCreateEvents} />
+      <Menu
+        id="simple-menu"
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        className={classes.contextMenu}
+      >
+        <MenuItem onClick={handleClose}>Profile</MenuItem>
+        <MenuItem onClick={handleClose}>My account</MenuItem>
+        <MenuItem onClick={handleClose}>Logout</MenuItem>
+      </Menu>
+      {/* <Grid container className={classes.createEvent} justify="center">
+        <Grid item lg={4} md={6} sm={12}>
+          <CreateEvent />
+        </Grid>
+      </Grid> */}
       <ReactMapGL
         {...viewport}
         onViewportChange={setViewport}
         mapStyle="mapbox://styles/mapbox/streets-v9"
         mapboxApiAccessToken="pk.eyJ1IjoicHBmY25zIiwiYSI6ImNrNW53MG0yeDBmcmkzbW5zZGkybWdtcjAifQ.lK9sv5uVdJieNLCV6krYwg"
+        onContextMenu={handleClick}
       >
-
+        {/* <Query
+          query={gql`
+          query {
+            get_resources(args: {hasura_session: ""}) {
+              id
+            }
+          }`}
+        >
+          {({ loading, error, data }) => {
+            if (error) {
+              return JSON.stringify(error);
+            }
+            if (loading) {
+              return 'loading...';
+            }
+            if (data) {
+              return JSON.stringify(data.get_session);
+            }
+            return "null";
+          }}
+        </Query> */}
         <Subscription
           subscription={gql`
             subscription {
@@ -96,18 +174,6 @@ export default function Map() {
                 id
                 created_at
                 description
-                event_comments(order_by: {created_at: asc}) {
-                  user {
-                    id
-                    name
-                    profile_picture
-                    resource {
-                      name
-                    }
-                  }
-                  comment
-                  created_at
-                }
                 resource {
                   id
                   name
@@ -117,11 +183,8 @@ export default function Map() {
                     profile_picture
                   }
                 }
-                locations {
-                  latitude
-                  longitude
-                  created_at
-                }
+                latitude
+                longitude
                 channel {
                   id
                   name
@@ -139,8 +202,8 @@ export default function Map() {
             }
             if (data && data.events.length > 0) {
               return data.events.map((event) => (
-                event.locations.length > 0 ? (
-                  <Marker key={`marker-${event.id}`} longitude={event.locations[0].longitude} latitude={event.locations[0].latitude}>
+                event.latitude && event.longitude ? (
+                  <Marker key={`marker-${event.id}`} longitude={event.longitude} latitude={event.latitude}>
                     <svg height="12" width="12" onClick={() => showEvent(event)}>
                       <circle cx="6" cy="6" r="5" fill="red" />
                     </svg>

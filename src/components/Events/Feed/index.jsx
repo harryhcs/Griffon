@@ -21,7 +21,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Search() {
+export default function EventsFeed(props) {
+  const {showEvent} = props;
   const classes = useStyles();
   const [isHidden, setShow] = useState(false);
 
@@ -48,7 +49,7 @@ export default function Search() {
       </Grid>
       <Grid item style={{ display: isHidden ? 'none' : null }} lg={12}>
         <Divider />
-        <FeedList />
+        <FeedList showEvent={showEvent} />
       </Grid>
     </Grid>
   );

@@ -19,6 +19,10 @@ const useStyles = makeStyles((theme) => ({
     // backgroundColor: theme.palette.background.paper,
   },
   item: {
+    '&:hover': {
+      background: '#efefef',
+    },
+    cursor: 'pointer',
     padding: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -49,28 +53,31 @@ function renderRow(props) {
   const classes = useStyles();
   const { index, data } = props;
   return (
-    <Grid container className={classes.item}>
+    <Grid container className={classes.item} onClick={() => data.showEvent(data.events[index])}>
       <Grid item>
         <Typography className={classes.description}>
-          {data[index].description}
+          {data.events[index].description}
         </Typography>
-        <Typography className={classes.creator}>
-          {' '}
+        {data.events[index].user.resource ? (
+          <Typography className={classes.creator}>
+            {' '}
           by
-          {' '}
-          {data[index].resource.name}
-        </Typography>
+            {' '}
+            {data.events[index].user.resource.name}
+          </Typography>
+        ) : null}
+
         <Typography className={classes.timestamp}>
-          {moment(data[index].created_at).fromNow()}
+          {moment(data.events[index].created_at).fromNow()}
           {' '}
           in
           {' '}
-          <span className={classes.channel}>{data[index].channel.name}</span>
+          <span className={classes.channel}>{data.events[index].channel.name}</span>
         </Typography>
 
       </Grid>
       <Grid item>
-        {data[index].locations.length > 0 ? (
+        {data.events[index].latitude && data.events[index].longitude ? (
           <IconButton>
             <LocationIcon color="secondary" />
           </IconButton>
@@ -80,7 +87,7 @@ function renderRow(props) {
   );
 }
 
-export default function EventList() {
+export default function EventList({ showEvent }) {
   const classes = useStyles();
 
   return (
@@ -88,24 +95,39 @@ export default function EventList() {
       subscription={gql`
       subscription { 
         events(order_by: {created_at: desc}) {
-              id
-              created_at
-              description
-              resource {
                 id
-                name
-              }
-              locations {
+                created_at
+                description
+                event_comments(order_by: {created_at: asc}) {
+                  user {
+                    id
+                    name
+                    profile_picture
+                    resource {
+                      id
+                      name
+                    }
+                  }
+                  comment
+                  created_at
+                }
+                user {
+                  id
+                  name
+                  profile_picture
+                  resource {
+                    id
+                    name
+                  }
+                }
                 latitude
                 longitude
-                created_at
-              }
-              channel {
-                id
-                name
+                channel {
+                  id
+                  name
+                }
               }
             }
-          }
       `}
     // onSubscriptionData={
     //   ({ subscriptionData, client }) => {
@@ -130,7 +152,7 @@ export default function EventList() {
                 height={500}
                 itemSize={46}
                 itemCount={data.events.length}
-                itemData={data.events}
+                itemData={{ events: data.events, showEvent }}
               >
                 {renderRow}
               </FixedSizeList>
