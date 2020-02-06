@@ -120,9 +120,18 @@ const ADD_COMMENT = gql`
 export default function Event(props) {
   const classes = useStyles();
   const { event, setShowEvents } = props;
+  console.log(event);
   const [AddComment, { loading, data }] = useMutation(ADD_COMMENT);
   const [comment, setComment] = useState();
   const el = useRef(null);
+
+  const handleDelete = () => {
+    console.info('You clicked the delete icon.');
+  };
+
+  const handleTagClick = () => {
+    console.info('You clicked the Chip.');
+  };
 
 
   useEffect(() => {
@@ -157,68 +166,77 @@ export default function Event(props) {
           </Grid>
         </Grid>
       </Grid>
-      <div className={classes.eventContentContainer}>
-        <Grid container>
-          <Grid item className={classes.content}>
-            <Typography variant="subtitle2">
-              {event.description}
-            </Typography>
-          </Grid>
-          <Grid container className={classes.creatorInformation}>
-            <Grid item>
-              <Avatar
-                alt={event.user.name}
-                src={event.user.profile_picture}
-                className={classes.avatar}
-              />
-            </Grid>
-            <Grid item>
-              <Typography className={classes.creator}>
-                {event.user.resource.name}
-                {' '}
-                (
-                {event.user.name}
-                )
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Typography variant="caption">
-                {moment(event.created_at).format('LLLL')}
-              </Typography>
-            </Grid>
-            {event.latitude && event.longitude ? (
-              <Grid item>
-                <Grid container>
-                  <Grid item>
-                    <MarkerIcon fontSize="small" color="secondary" />
-                  </Grid>
-                  <Grid item>
-                    <Typography variant="caption">
-                      (
-                      {event.latitude}
-                      ,
-                      {' '}
-                      {event.longitude}
-                      )
-                    </Typography>
-                  </Grid>
+      <Grid container lg={12} flexDirection="row">
+        <Grid item>
+          <div className={classes.eventContentContainer}>
+            <Grid container lg={12}>
+              <Grid item className={classes.content}>
+                <Typography variant="subtitle2">
+                  {event.description}
+                </Typography>
+              </Grid>
+              <Grid container className={classes.creatorInformation} spacing={1}>
+                <Grid item>
+                  <Avatar
+                    alt={event.user.name}
+                    src={event.user.profile_picture}
+                    className={classes.avatar}
+                  />
+                </Grid>
+                <Grid item>
+                  <Typography className={classes.creator}>
+                    {event.user.resource.name}
+                    {' '}
+                    (
+                    {event.user.name}
+                    )
+                  </Typography>
+                  <Typography variant="caption">
+                    {moment(event.created_at).format('LLLL')}
+                  </Typography>
+                  <br />
+                  {event.latitude && event.longitude ? (
+                    <div>
+                      <MarkerIcon fontSize="small" color="secondary" />
+                      <Typography variant="caption">
+                        (
+                        {event.latitude}
+                        ,
+                        {' '}
+                        {event.longitude}
+                        )
+                      </Typography>
+                    </div>
+
+                  ) : null}
+                </Grid>
+
+                <Grid item>
+                  <Chip label={event.channel.name} variant="outlined" color="secondary" />
+                </Grid>
+                <Grid item>
+                  {event.event_tags.map((t) => (
+                    <Chip
+                      size="small"
+                      // icon={t.tag.svg_data}
+                      label={t.tag.name}
+                      onClick={handleTagClick}
+                      onDelete={handleDelete}
+                      color={t.tag.color}
+                    />
+                  ))}
                 </Grid>
               </Grid>
-            ) : null}
-            <Grid item>
-              <Chip label={event.channel.name} variant="outlined" color="secondary" />
             </Grid>
-          </Grid>
-        </Grid>
-        <br />
-        <Divider />
-        <Grid container className={classes.commentsContainer}>
-          <Grid item className={classes.comments} lg={12}>
-            <Typography className={classes.commentsTitle}>
-              Comments
-            </Typography>
-            <Subscription
-              subscription={gql`
+            <br />
+            <Divider />
+            <Grid container className={classes.commentsContainer}>
+              <Grid item className={classes.comments} lg={12}>
+                <Typography className={classes.commentsTitle}>
+                  Comments
+                </Typography>
+                <Subscription
+                  subscription={gql`
               subscription {
                 event_comments(where: {event_id: {_eq: ${event.id}}}) {
                   id
@@ -235,53 +253,58 @@ export default function Event(props) {
                   created_at
                 }
               }
-          `}>
-              {({ loading, error, data }) => {
-                if (error) {
-                  console.log(error)
-                  return JSON.stringify(error);
-                }
-                if (loading) {
-                  return 'loading...';
-                }
-                if (data && data.event_comments.length > 0) {
-                  return data.event_comments.map((comment) => (
-                    <div className={classes.comment} key={comment.id}>
-                      <Grid container className={classes.commentIdentityContainer} spacing={1}>
-                        <Grid item>
-                          <Avatar src={comment.user.profile_picture} />
-                        </Grid>
-                        <Grid item>
-                          <Typography className={classes.commentUserName}>
-                            {comment.user.name}
-                          </Typography>
-                          <Typography className={classes.commentResourceName}>
-                            {comment.user.resource.name}
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                      <Grid container className={classes.commentContainer}>
-                        <Grid item>
-                          <Typography className={classes.commentTimestamp}>
-                            {moment(comment.created_at).fromNow()}
-                          </Typography>
-                        </Grid>
-                        <Grid item>
-                          <Typography variant="body2">
-                            {comment.comment}
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                    </div>
-                  ));
-                }
-                return null;
-              }}
-            </Subscription>
-            <div id="el" ref={el} />
-          </Grid>
+          `}
+                >
+                  {({ loading, error, data }) => {
+                    if (error) {
+                      console.log(error);
+                      return JSON.stringify(error);
+                    }
+                    if (loading) {
+                      return 'loading...';
+                    }
+                    if (data && data.event_comments.length > 0) {
+                      return data.event_comments.map((comment) => (
+                        <div className={classes.comment} key={comment.id}>
+                          <Grid container className={classes.commentIdentityContainer} spacing={1}>
+                            <Grid item>
+                              <Avatar src={comment.user.profile_picture} />
+                            </Grid>
+                            <Grid item>
+                              <Typography className={classes.commentUserName}>
+                                {comment.user.name}
+                              </Typography>
+                              <Typography className={classes.commentResourceName}>
+                                {comment.user.resource.name}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                          <Grid container className={classes.commentContainer}>
+                            <Grid item>
+                              <Typography className={classes.commentTimestamp}>
+                                {moment(comment.created_at).fromNow()}
+                              </Typography>
+                            </Grid>
+                            <Grid item>
+                              <Typography variant="body2">
+                                {comment.comment}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                        </div>
+                      ));
+                    }
+                    return null;
+                  }}
+                </Subscription>
+                <div id="el" ref={el} />
+              </Grid>
+            </Grid>
+          </div>
         </Grid>
-      </div>
+      </Grid>
+
+
       <div className={classes.commentInputContainer}>
         <Paper component="form" className={classes.commentRoot}>
           <IconButton className={classes.iconButton} aria-label="menu">

@@ -126,6 +126,18 @@ export default function EventList({ showEvent }) {
                   id
                   name
                 }
+                event_tags {
+                  tag {
+                    id
+                    name
+                    tag_parameters {
+                      id
+                      field_name
+                      field_type
+                    }
+                  }
+                  parameters 
+                }
               }
             }
       `}

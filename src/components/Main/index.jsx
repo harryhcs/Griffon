@@ -1,7 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import ReactMapGL, { Marker } from 'react-map-gl';
+import ReactMapGL, { Marker, FlyToInterpolator } from 'react-map-gl';
+import { easeCubic } from 'd3-ease';
 import { Grid } from '@material-ui/core';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -55,6 +56,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const DEFAULT_MARKER = 'M0-48c-9.8 0-17.7 7.8-17.7 17.4 0 15.5 17.7 30.6 17.7 30.6s17.7-15.4 17.7-30.6c0-9.6-7.9-17.4-17.7-17.4z';
+const DEFAULT_MARKER_COLOR = 'black';
+
 export default function Map() {
   const classes = useStyles();
   const [viewport, setViewport] = useState({
@@ -68,11 +72,12 @@ export default function Map() {
   const [event, setEvent] = useState(null);
   const [showEvents, setShowEvents] = useState(false);
   const [showCreateEvent, setShowCreateEvents] = useState(false);
+  const [coords, setCoords] = useState();
 
-  const handleClick = (event) => {
-    event.preventDefault();
-    console.log(event);
-    setAnchorEl(event.currentTarget);
+  const handleClick = (evt) => {
+    if (showCreateEvent) {
+      setCoords(evt.lngLat);
+    }
   };
 
   const handleClose = () => {
@@ -82,14 +87,16 @@ export default function Map() {
   const showEvent = (clickedEvent) => {
     setShowEvents(true);
     setEvent(clickedEvent);
-  };
-  const showCreateEventContaier = () => {
-    setShowCreateEvents(true);
-  };
-
-  const handleContext = (event) => {
-    console.log(event.lngLat);
-    event.preventDefault();
+    setViewport({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      latitude: clickedEvent.latitude,
+      longitude: clickedEvent.longitude,
+      transitionDuration: 'auto',
+      transitionInterpolator: new FlyToInterpolator(),
+      transitionEasing: easeCubic,
+      zoom: 16,
+    });
   };
 
   return (
@@ -115,13 +122,13 @@ export default function Map() {
           {
             showCreateEvent ? (
               <Grid item className={classes.event}>
-                <CreateEvent setShowCreateEvents={setShowCreateEvents} />
+                <CreateEvent setCoords={setCoords} coords={coords} setShowCreateEvents={setShowCreateEvents} />
               </Grid>
             ) : null
           }
         </Grid>
       </Grid>
-      <Actions setShowCreateEvents={setShowCreateEvents} />
+      <Actions setShowCreateEvents={setShowCreateEvents} setCoords={setCoords} />
       <Menu
         id="simple-menu"
         anchorEl={anchorEl}
@@ -144,7 +151,8 @@ export default function Map() {
         onViewportChange={setViewport}
         mapStyle="mapbox://styles/mapbox/streets-v9"
         mapboxApiAccessToken="pk.eyJ1IjoicHBmY25zIiwiYSI6ImNrNW53MG0yeDBmcmkzbW5zZGkybWdtcjAifQ.lK9sv5uVdJieNLCV6krYwg"
-        onContextMenu={handleClick}
+        // onContextMenu={handleClick}
+        onClick={handleClick}
       >
         {/* <Query
           query={gql`
@@ -183,11 +191,40 @@ export default function Map() {
                     profile_picture
                   }
                 }
+                user {
+                  id
+                  name
+                  profile_picture
+                  resource {
+                    id
+                    name
+                  }
+                }
                 latitude
                 longitude
                 channel {
                   id
                   name
+                }
+                latitude
+                longitude
+                channel {
+                  id
+                  name
+                }
+                event_tags {
+                  tag {
+                    id
+                    name
+                    svg_data
+                    color
+                    tag_parameters {
+                      id
+                      field_name
+                      field_type
+                    }
+                  }
+                  parameters 
                 }
               }
             }
@@ -201,11 +238,14 @@ export default function Map() {
               return 'loading...';
             }
             if (data && data.events.length > 0) {
-              return data.events.map((event) => (
-                event.latitude && event.longitude ? (
-                  <Marker key={`marker-${event.id}`} longitude={event.longitude} latitude={event.latitude}>
-                    <svg height="12" width="12" onClick={() => showEvent(event)}>
-                      <circle cx="6" cy="6" r="5" fill="red" />
+              return data.events.map((e) => (
+                e.latitude && e.longitude ? (
+                  <Marker key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48" onClick={() => showEvent(e)}>
+                      <path
+                        d={e.event_tags.length === 0 ? DEFAULT_MARKER : e.event_tags[0].tag.svg_data}
+                        fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color}
+                      />
                     </svg>
                   </Marker>
                 ) : null

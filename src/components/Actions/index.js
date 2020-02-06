@@ -1,12 +1,9 @@
+/* eslint-disable react/jsx-filename-extension */
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import SpeedDial from '@material-ui/lab/SpeedDial';
 import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon';
 import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
-import FileCopyIcon from '@material-ui/icons/FileCopyOutlined';
-import SaveIcon from '@material-ui/icons/Save';
-import PrintIcon from '@material-ui/icons/Print';
-import ShareIcon from '@material-ui/icons/Share';
 import MessageIcon from '@material-ui/icons/Message';
 
 const useStyles = makeStyles((theme) => ({
@@ -34,13 +31,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const actions = [
-  { icon: <MessageIcon />, name: 'Event' },
-];
-
 export default function Actions(props) {
   // eslint-disable-next-line react/prop-types
-  const { setShowCreateEvents } = props;
+  const { setShowCreateEvents, setCoords } = props;
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const handleClose = () => {
@@ -67,7 +60,7 @@ export default function Actions(props) {
             key="create-event"
             icon={<MessageIcon />}
             tooltipTitle="Create event"
-            onClick={() => { setShowCreateEvents(true); }}
+            onClick={() => { setShowCreateEvents(true); setCoords(null); }}
           />
         </SpeedDial>
       </div>
