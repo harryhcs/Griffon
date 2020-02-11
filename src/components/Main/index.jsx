@@ -6,6 +6,7 @@ import { easeCubic } from 'd3-ease';
 import { Grid } from '@material-ui/core';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import AccountIcon from '@material-ui/icons/AccountCircle';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 
@@ -18,6 +19,7 @@ import Event from '../Events/event';
 import CreateEvent from '../Events/createEvent';
 import Search from '../Search';
 import Actions from '../Actions';
+import Resource from '../Resources';
 
 const useStyles = makeStyles((theme) => ({
   leftContainer: {
@@ -56,7 +58,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const DEFAULT_MARKER = 'M0-48c-9.8 0-17.7 7.8-17.7 17.4 0 15.5 17.7 30.6 17.7 30.6s17.7-15.4 17.7-30.6c0-9.6-7.9-17.4-17.7-17.4z';
 const DEFAULT_MARKER_COLOR = 'black';
 
 export default function Map() {
@@ -70,6 +71,8 @@ export default function Map() {
   });
   const [anchorEl, setAnchorEl] = useState(null);
   const [event, setEvent] = useState(null);
+  const [resource, setResource] = useState(null);
+  const [showResource, setShowResource] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showCreateEvent, setShowCreateEvents] = useState(false);
   const [coords, setCoords] = useState();
@@ -82,6 +85,11 @@ export default function Map() {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleResourceClick = (r) => {
+    setResource(r);
+    setShowResource(true);
   };
 
   const showEvent = (clickedEvent) => {
@@ -126,6 +134,13 @@ export default function Map() {
               </Grid>
             ) : null
           }
+          {
+            showResource ? (
+              <Grid item className={classes.event}>
+                <Resource resourceId={resource.id} setShowResource={setShowResource} />
+              </Grid>
+            ) : null
+          }
         </Grid>
       </Grid>
       <Actions setShowCreateEvents={setShowCreateEvents} setCoords={setCoords} />
@@ -154,27 +169,6 @@ export default function Map() {
         // onContextMenu={handleClick}
         onClick={handleClick}
       >
-        {/* <Query
-          query={gql`
-          query {
-            get_resources(args: {hasura_session: ""}) {
-              id
-            }
-          }`}
-        >
-          {({ loading, error, data }) => {
-            if (error) {
-              return JSON.stringify(error);
-            }
-            if (loading) {
-              return 'loading...';
-            }
-            if (data) {
-              return JSON.stringify(data.get_session);
-            }
-            return "null";
-          }}
-        </Query> */}
         <Subscription
           subscription={gql`
             subscription {
@@ -240,16 +234,55 @@ export default function Map() {
             if (data && data.events.length > 0) {
               return data.events.map((e) => (
                 e.latitude && e.longitude ? (
-                  <Marker key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 48 48" onClick={() => showEvent(e)}>
-                      <path
-                        d={e.event_tags.length === 0 ? DEFAULT_MARKER : e.event_tags[0].tag.svg_data}
-                        fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color}
-                      />
-                    </svg>
+                  <Marker onClick={() => showEvent(e)} className={classes.marker} key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
+                    {
+                      e.event_tags.length === 0
+                        ? (
+                          <svg width="10" height="10">
+                            <circle cx="5" cy="5" r="5" fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color} />
+                          </svg>
+                        )
+                        // eslint-disable-next-line react/no-danger
+                        : <div dangerouslySetInnerHTML={{ __html: e.event_tags[0].tag.svg_data }} />
+                    }
                   </Marker>
                 ) : null
               ));
+            }
+            return null;
+          }}
+        </Subscription>
+        <Subscription
+          subscription={gql`
+            subscription {
+              resources {
+                id
+                name
+                locations(order_by: {created_at: desc}, limit: 1) {
+                  id
+                  latitude
+                  longitude
+                  created_at
+                }
+                assigned_user {
+                  name
+                }
+              }
+        }`}
+        >
+          {({ loading, error, data }) => {
+            if (error) {
+              return JSON.stringify(error);
+            }
+            if (loading) {
+              return 'loading...';
+            }
+            if (data && data.resources.length > 0) {
+              return data.resources.map((resource) => resource.locations.map((location) => (
+                <Marker key={`marker-${location.id}`} longitude={location.longitude} latitude={location.latitude}>
+                  <AccountIcon fontSize="small" onClick={() => handleResourceClick(resource)} />
+                </Marker>
+              )));
             }
             return null;
           }}
