@@ -11,5 +11,5 @@ export const REALTIME_GRAPHQL_URL = `${scheme(
 export const authClientId = 'nAXDIZAr1oqb8Vkj2PKC8EMfG9ojAYkF';
 export const authDomain = 'ppfcns.eu.auth0.com';
 export const callbackUrl = `${scheme(
-  'http',
-)}://localhost:5000/callback`;
+  'https',
+)}://distracted-heyrovsky-d5ba55.netlify.com/callback`;
