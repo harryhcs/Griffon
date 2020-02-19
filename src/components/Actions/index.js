@@ -59,19 +59,16 @@ export default function Actions(props) {
           direction="up"
         >
           <SpeedDialAction
-            key="create-event"
             icon={<MessageIcon color="primary" />}
             tooltipTitle="Create event"
             onClick={() => { setShowCreateEvents(true); setCoords(null); }}
           />
           <SpeedDialAction
-            key="create-event"
             icon={<ResourceIcon color="primary" />}
             tooltipTitle="Create resource"
             onClick={() => { setShowCreateEvents(true); setCoords(null); }}
           />
           <SpeedDialAction
-            key="create-event"
             icon={<ChannelIcon color="primary" />}
             tooltipTitle="Create channel"
             onClick={() => { setShowCreateEvents(true); setCoords(null); }}

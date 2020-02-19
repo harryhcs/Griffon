@@ -30,6 +30,7 @@ const useStyles = makeStyles(() => ({
     borderRadius: 5,
     margin: 10,
     zIndex: 1000,
+    width: 350,
   },
   search: {
     position: 'relative',
@@ -177,8 +178,7 @@ export default function Map() {
 
   return (
     <div>
-      {/* <Toolbar /> */}
-      <Grid container lg={3} md={3} sm={12} className={classes.leftContainer}>
+      <Grid container className={classes.leftContainer}>
         <Grid className={classes.search} container>
           <Grid item>
             <Search />
@@ -224,11 +224,6 @@ export default function Map() {
         <MenuItem onClick={handleClose}>My account</MenuItem>
         <MenuItem onClick={handleClose}>Logout</MenuItem>
       </Menu>
-      {/* <Grid container className={classes.createEvent} justify="center">
-        <Grid item lg={4} md={6} sm={12}>
-          <CreateEvent />
-        </Grid>
-      </Grid> */}
       <ReactMapGL
         {...viewport}
         ref={reactMap}
@@ -350,7 +345,7 @@ export default function Map() {
               return 'loading...';
             }
             if (data && data.resources.length > 0) {
-              return data.resources.map((r) => resource.locations.map((location) => (
+              return data.resources.map((r) => r.locations.map((location) => (
                 <Marker key={`marker-${location.id}`} longitude={location.longitude} latitude={location.latitude}>
                   <AccountIcon fontSize="small" onClick={() => handleResourceClick(r)} />
                 </Marker>
