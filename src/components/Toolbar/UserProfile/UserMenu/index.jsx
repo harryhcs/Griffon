@@ -10,7 +10,7 @@ import {
 import { useAuth0 } from '../../../Auth';
 
 const useStyles = makeStyles((theme) => ({
-  
+
   paper: {
     paddingTop: 20,
     paddingBottom: 20,

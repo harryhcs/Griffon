@@ -25,14 +25,14 @@ const App = () => {
   if (isAuthenticated) {
     if (!loading) {
       const httpLink = new HttpLink({
-        uri: 'http://griffondev.westeurope.azurecontainer.io/v1/graphql',
+        uri: 'https://griffonapp.westeurope.azurecontainer.io/v1/graphql',
         headers: {
           Authorization: headers,
         },
       });
       // Create a WebSocket link:
       const wsLink = new WebSocketLink({
-        uri: 'ws://griffondev.westeurope.azurecontainer.io/v1/graphql',
+        uri: 'ws://griffonapp.westeurope.azurecontainer.io/v1/graphql',
         options: {
           lazy: true,
           reconnect: true,

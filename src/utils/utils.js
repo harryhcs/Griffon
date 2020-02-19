@@ -1,7 +1,8 @@
+/* eslint-disable import/prefer-default-export */
 const getHeaders = () => {
-  const token = localStorage.getItem("auth0:id_token");
+  const token = localStorage.getItem('auth0:id_token');
   const headers = {
-    authorization: token ? `Bearer ${token}` : ""
+    authorization: token ? `Bearer ${token}` : '',
   };
   return headers;
 };

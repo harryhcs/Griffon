@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
@@ -22,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function EventsFeed(props) {
-  const {showEvent} = props;
+  const { showEvent } = props;
   const classes = useStyles();
   const [isHidden, setShow] = useState(false);
 

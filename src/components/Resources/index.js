@@ -1,23 +1,18 @@
+/* eslint-disable max-len */
 /* eslint-disable no-param-reassign */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-filename-extension */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
-  Typography, TextField, Grid, IconButton, Divider, Button,
+  Typography, Grid, IconButton, Divider, Button,
 } from '@material-ui/core';
-import Chip from '@material-ui/core/Chip';
 import Avatar from '@material-ui/core/Avatar';
 import CloseIcon from '@material-ui/icons/Close';
 import MarkerIcon from '@material-ui/icons/Room';
-import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
-import MenuIcon from '@material-ui/icons/Menu';
-import SendIcon from '@material-ui/icons/Send';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import gql from 'graphql-tag';
-import { useQuery } from '@apollo/react-hooks';
 import { Subscription, Query } from 'react-apollo';
 import moment from 'moment';
 
