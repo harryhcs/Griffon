@@ -10,7 +10,11 @@ import {
 import { useAuth0 } from '../../../Auth';
 
 const useStyles = makeStyles((theme) => ({
-
+  root: {
+    position: 'fixed',
+    top: 60,
+    right: 10,
+  },
   paper: {
     paddingTop: 20,
     paddingBottom: 20,

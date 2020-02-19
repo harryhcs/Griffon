@@ -8,9 +8,6 @@ import Search from '../Search/index';
 import UserProfile from './UserProfile/index';
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-  },
   menuButton: {
     marginRight: theme.spacing(2),
   },
@@ -23,13 +20,11 @@ export default function NavigationBar() {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
-      <AppBar position="fixed" style={{ background: 'transparent', boxShadow: 'none' }}>
-        <Toolbar>
-          <Search />
-          <UserProfile />
-        </Toolbar>
-      </AppBar>
-    </div>
+    <AppBar position="fixed" style={{ background: 'transparent', boxShadow: 'none' }}>
+      <Toolbar disableGutters className={classes.toolbar} style={{ marginLeft: 10 }}>
+        <Search />
+        <UserProfile />
+      </Toolbar>
+    </AppBar>
   );
 }

@@ -20,7 +20,7 @@ import gql from 'graphql-tag';
 import EventsFeed from '../Events/Feed/index';
 import Event from '../Events/event';
 import CreateEvent from '../Events/createEvent';
-import Search from '../Search';
+import Toolbar from '../Toolbar';
 import Actions from '../Actions';
 import Resource from '../Resources';
 
@@ -30,13 +30,7 @@ const useStyles = makeStyles(() => ({
     borderRadius: 5,
     margin: 10,
     zIndex: 1000,
-    width: 350,
-  },
-  search: {
-    position: 'relative',
-    background: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.2), 0 -1px 0px rgba(0,0,0,0.02)',
-    borderRadius: 5,
+    top: 45,
   },
   events: {
     position: 'relative',
@@ -177,64 +171,63 @@ export default function Map() {
   };
 
   return (
-    <div>
-      <Grid container className={classes.leftContainer}>
-        <Grid className={classes.search} container>
-          <Grid item>
-            <Search />
-          </Grid>
-        </Grid>
-        <Grid className={classes.events} container>
-          <Grid item>
-            <EventsFeed showEvent={showEvent} />
-          </Grid>
-          {
-            showEvents ? (
-              <Grid item className={classes.event}>
-                <Event event={event} setShowEvents={setShowEvents} />
-              </Grid>
-            ) : null
-          }
-          {
-            showCreateEvent ? (
-              <Grid item className={classes.event}>
-                <CreateEvent setCoords={setCoords} coords={coords} setShowCreateEvents={setShowCreateEvents} />
-              </Grid>
-            ) : null
-          }
-          {
-            showResource ? (
-              <Grid item className={classes.event}>
-                <Resource handleAddHistory={handleAddHistory} resourceId={resource.id} setShowResource={setShowResource} />
-              </Grid>
-            ) : null
-          }
-        </Grid>
+    <Grid container className={classes.root}>
+      <Grid item>
+        <Toolbar />
       </Grid>
-      <Actions setShowCreateEvents={setShowCreateEvents} setCoords={setCoords} />
-      <Menu
-        id="simple-menu"
-        anchorEl={anchorEl}
-        keepMounted
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        className={classes.contextMenu}
-      >
-        <MenuItem onClick={handleClose}>Profile</MenuItem>
-        <MenuItem onClick={handleClose}>My account</MenuItem>
-        <MenuItem onClick={handleClose}>Logout</MenuItem>
-      </Menu>
-      <ReactMapGL
-        {...viewport}
-        ref={reactMap}
-        onViewportChange={setViewport}
-        mapStyle="mapbox://styles/mapbox/streets-v9"
-        mapboxApiAccessToken="pk.eyJ1IjoicHBmY25zIiwiYSI6ImNrNW53MG0yeDBmcmkzbW5zZGkybWdtcjAifQ.lK9sv5uVdJieNLCV6krYwg"
-        // onContextMenu={handleClick}
-        onClick={handleClick}
-      >
-        <Subscription
-          subscription={gql`
+      <Grid item>
+        <Grid container item className={classes.leftContainer} lg={3} md={5} sm={8} xs={12}>
+          <Grid className={classes.events} container>
+            <Grid item>
+              <EventsFeed showEvent={showEvent} />
+            </Grid>
+            {
+              showEvents ? (
+                <Grid item className={classes.event}>
+                  <Event event={event} setShowEvents={setShowEvents} />
+                </Grid>
+              ) : null
+            }
+            {
+              showCreateEvent ? (
+                <Grid item className={classes.event}>
+                  <CreateEvent setCoords={setCoords} coords={coords} setShowCreateEvents={setShowCreateEvents} />
+                </Grid>
+              ) : null
+            }
+            {
+              showResource ? (
+                <Grid item className={classes.event}>
+                  <Resource handleAddHistory={handleAddHistory} resourceId={resource.id} setShowResource={setShowResource} />
+                </Grid>
+              ) : null
+            }
+          </Grid>
+        </Grid>
+        <Actions setShowCreateEvents={setShowCreateEvents} setCoords={setCoords} />
+        <Menu
+          id="simple-menu"
+          anchorEl={anchorEl}
+          keepMounted
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          className={classes.contextMenu}
+        >
+          <MenuItem onClick={handleClose}>Profile</MenuItem>
+          <MenuItem onClick={handleClose}>My account</MenuItem>
+          <MenuItem onClick={handleClose}>Logout</MenuItem>
+        </Menu>
+        <ReactMapGL
+          {...viewport}
+          ref={reactMap}
+          onViewportChange={setViewport}
+          mapStyle="mapbox://styles/mapbox/streets-v9"
+          mapboxApiAccessToken="pk.eyJ1IjoicHBmY25zIiwiYSI6ImNrNW53MG0yeDBmcmkzbW5zZGkybWdtcjAifQ.lK9sv5uVdJieNLCV6krYwg"
+          // onContextMenu={handleClick}
+          onClick={handleClick}
+        >
+          <Subscription
+            subscription={gql`
             subscription {
               events {
                 id
@@ -287,22 +280,22 @@ export default function Map() {
               }
             }
         `}
-        >
-          {({ loading, error, data }) => {
-            if (error) {
-              return JSON.stringify(error);
-            }
-            if (loading) {
-              return 'loading...';
-            }
-            if (data && data.events.length > 0) {
-              return data.events.map((e) => (
-                e.latitude && e.longitude ? (
-                  <Marker className={classes.marker} key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
-                    <svg width="10" height="10" onClick={() => showEvent(e)}>
-                      <circle cx="5" cy="5" r="5" fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color} />
-                    </svg>
-                    {/* {
+          >
+            {({ loading, error, data }) => {
+              if (error) {
+                return JSON.stringify(error);
+              }
+              if (loading) {
+                return 'loading...';
+              }
+              if (data && data.events.length > 0) {
+                return data.events.map((e) => (
+                  e.latitude && e.longitude ? (
+                    <Marker className={classes.marker} key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
+                      <svg width="10" height="10" onClick={() => showEvent(e)}>
+                        <circle cx="5" cy="5" r="5" fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color} />
+                      </svg>
+                      {/* {
                       e.event_tags.length === 0
                         ? (
                           <svg width="10" height="10" onClick={handleClick}>
@@ -312,15 +305,15 @@ export default function Map() {
                         // eslint-disable-next-line react/no-danger
                         : <div dangerouslySetInnerHTML={{ __html: e.event_tags[0].tag.svg_data }} />
                     } */}
-                  </Marker>
-                ) : null
-              ));
-            }
-            return null;
-          }}
-        </Subscription>
-        <Subscription
-          subscription={gql`
+                    </Marker>
+                  ) : null
+                ));
+              }
+              return null;
+            }}
+          </Subscription>
+          <Subscription
+            subscription={gql`
             subscription {
               resources {
                 id
@@ -336,25 +329,26 @@ export default function Map() {
                 }
               }
         }`}
-        >
-          {({ loading, error, data }) => {
-            if (error) {
-              return JSON.stringify(error);
-            }
-            if (loading) {
-              return 'loading...';
-            }
-            if (data && data.resources.length > 0) {
-              return data.resources.map((r) => r.locations.map((location) => (
-                <Marker key={`marker-${location.id}`} longitude={location.longitude} latitude={location.latitude}>
-                  <AccountIcon fontSize="small" onClick={() => handleResourceClick(r)} />
-                </Marker>
-              )));
-            }
-            return null;
-          }}
-        </Subscription>
-      </ReactMapGL>
-    </div>
+          >
+            {({ loading, error, data }) => {
+              if (error) {
+                return JSON.stringify(error);
+              }
+              if (loading) {
+                return 'loading...';
+              }
+              if (data && data.resources.length > 0) {
+                return data.resources.map((r) => r.locations.map((location) => (
+                  <Marker key={`marker-${location.id}`} longitude={location.longitude} latitude={location.latitude}>
+                    <AccountIcon fontSize="small" onClick={() => handleResourceClick(r)} />
+                  </Marker>
+                )));
+              }
+              return null;
+            }}
+          </Subscription>
+        </ReactMapGL>
+      </Grid>
+    </Grid>
   );
 }
