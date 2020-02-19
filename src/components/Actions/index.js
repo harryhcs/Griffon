@@ -5,6 +5,8 @@ import SpeedDial from '@material-ui/lab/SpeedDial';
 import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon';
 import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
 import MessageIcon from '@material-ui/icons/Message';
+import ChannelIcon from '@material-ui/icons/RecordVoiceOver';
+import ResourceIcon from '@material-ui/icons/DevicesOther';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -58,8 +60,20 @@ export default function Actions(props) {
         >
           <SpeedDialAction
             key="create-event"
-            icon={<MessageIcon />}
+            icon={<MessageIcon color="primary" />}
             tooltipTitle="Create event"
+            onClick={() => { setShowCreateEvents(true); setCoords(null); }}
+          />
+          <SpeedDialAction
+            key="create-event"
+            icon={<ResourceIcon color="primary" />}
+            tooltipTitle="Create resource"
+            onClick={() => { setShowCreateEvents(true); setCoords(null); }}
+          />
+          <SpeedDialAction
+            key="create-event"
+            icon={<ChannelIcon color="primary" />}
+            tooltipTitle="Create channel"
             onClick={() => { setShowCreateEvents(true); setCoords(null); }}
           />
         </SpeedDial>

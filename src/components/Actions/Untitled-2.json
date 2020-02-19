@@ -1,0 +1,115 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerGroups_griffondev_container_group_name": {
+            "defaultValue": "griffondev-container-group",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "name": "[parameters('containerGroups_griffondev_container_group_name')]",
+            "location": "westeurope",
+            "properties": {
+                "containers": [
+                    {
+                        "name": "hasura-graphql-engine",
+                        "properties": {
+                            "image": "hasura/graphql-engine:latest",
+                            "command": [
+                                "graphql-engine",
+                                "--host",
+                                "griffondev-pg-server.postgres.database.azure.com",
+                                "--port",
+                                "5432",
+                                "--user",
+                                "hasura@griffondev-pg-server",
+                                "--password",
+                                "Kznwildlaw@1",
+                                "--dbname",
+                                "hasura",
+                                "serve",
+                                "--server-port",
+                                "80",
+                                "--enable-console"
+                            ],
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 80
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "HASURA_GRAPHQL_ADMIN_SECRET",
+                                    "value": "Kznwildlaw@1"
+                                },
+                                {
+                                    "name": "HASURA_GRAPHQL_JWT_SECRET",
+                                    "value": "{\"type\": \"RS512\", \"key\": \"-----BEGIN CERTIFICATE-----\nMIIDATCCAemgAwIBAgIJCYyb/ElpBtWtMA0GCSqGSIb3DQEBCwUAMB4xHDAaBgNV\nBAMTE3BwZmNucy5ldS5hdXRoMC5jb20wHhcNMTgwODIxMDcxOTU1WhcNMzIwNDI5\nMDcxOTU1WjAeMRwwGgYDVQQDExNwcGZjbnMuZXUuYXV0aDAuY29tMIIBIjANBgkq\nhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv5+pClrlyHGTsFO1v/b9jYNKSK6vJ0vB\nmJp8FKo9L9XHOQJgr4xjMN8+afIF3qjhh/CRIFf9XTsMmYb0WeCfEN/WA5/+W/e5\nEVD/HM20nOjXFtm/5IpokrCwNyQE0PZtSqf0pvbq34brXqUzWK5Sw81G/bSXx1mm\nPCEFdG2P0OaZqsbAn5A6zKOthmZqE0MQ4+bVatIXW+RpZ/uZEClAWFzCw8FFyn3K\nJ4r5HgScSv6tg4F038x7T15lRA5hKNyBblL4AgwPhUxlHaIyPQPwNuATSBWZZebf\nsI1QMFXn+NzmENlzc1/cjWqWaCsZpBuHoTLXPEO295Wd+F3eePcxnwIDAQABo0Iw\nQDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQCF1I0S2LWJ9QW/+uCtuqIWTH9\nbjAOBgNVHQ8BAf8EBAMCAoQwDQYJKoZIhvcNAQELBQADggEBAHEQgHE8d9zKhj0Y\nCjQ2XBhypzZi+P2fjuyL4ma/m7wfFJgvh+f/C/vcw5TDlRgiV/cTbOcj3IkbiH1z\nuj4KHJzo+80vEmh4cZjJHihJIz3fXHHB1mTfYt23+q0IIY4zKIOnLkbsbMJCx+2n\nVAl3vmTwSo5JkVQ+pyVv3nR3o56pSroa9AJAD08ToADbL/+6Vn+1I6DjpGoyTkPZ\n0gd3c0k59wGFKd0lmpzLke6U4uEY3qafD/HQok+kzWuseLwPw4zjLVV6YDC4B6Yb\niSSJhL0GIX7MYqPuj1QH1Pup318XDX5wqYgowH3flXTH6lsO7fUeFgfXTPT4DOhT\nGtYuIQw=\n-----END CERTIFICATE-----\n\"}"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "nginx-ssl",
+                        "properties": {
+                            "image": "nginx",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 443
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            },
+                            "volumeMounts": [
+                                {
+                                    "name": "nginx-config",
+                                    "mountPath": "/etc/nginx"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "restartPolicy": "Always",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 443
+                        }
+                    ],
+                    "ip": "40.114.189.104",
+                    "type": "Public",
+                    "dnsNameLabel": "griffonapp"
+                },
+                "osType": "Linux",
+                "volumes":[
+                    {
+                        "secret": {
+                            "ssl.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCakNDQWU0Q0NRQ2N5M01aNG5OYjB6QU5C Z2txaGtpRzl3MEJBUXNGQURCRk1Rc3dDUVlEVlFRR0V3SmEKUVRFVE1CRUdBMVVFQ0F3S1UyOXRa UzFUZEdGMFpURWhNQjhHQTFVRUNnd1lTVzUwWlhKdVpYUWdWMmxrWjJsMApjeUJRZEhrZ1RIUmtN QjRYRFRJd01ESXhPVEEzTWpFeU1Wb1hEVEl4TURJeE9EQTNNakV5TVZvd1JURUxNQWtHCkExVUVC aE1DV2tFeEV6QVJCZ05WQkFnTUNsTnZiV1V0VTNSaGRHVXhJVEFmQmdOVkJBb01HRWx1ZEdWeWJt VjAKSUZkcFpHZHBkSE1nVUhSNUlFeDBaRENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFE Q0NBUW9DZ2dFQgpBTEwrZ0V4OG1UTjNpVzFFNy83dFVsOEpHZFFObTdsUXRYd2ZUTjFvbjRkdzhR RjVsazJCcit2aDdYakFGcVBiCk12ZVNtNFhrL08wMU1reHFYVEwzbTI1bkw5d2lPTFRUUTM2Q2FC YTlQcGt6SWFmaXpLa0pHdmVCNEQ1cjhpaDEKRnJybFlCem1oLzVZNnFwQ3RQWGpWSURaRlVmeHFB QmFNQ2lWbHkyQ3RiSitPU0RxR3dCd25rV29wMERTVXlreQo2aFJWODh1UFBrSG9lUGx2ZGwxMXV3 aHAxZzN0Y1VEaDdCYUV0dGpPbEZSOXpHRHMzelJOMHIxNlJXKzI1YnZsCnEwaXE3MW5BZkgyRjR1 cHcya1g0VDIzblFNU1ZsZ0xXc0E5MEtsbWxYVlJDY2swQ2VVTHQrZ05EWGo5dmlmZ04KKzVsTmtE M3p4a2NYdW9uelZFbEpVMlVDQXdFQUFUQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFqdEhoTVF0 Twp6SFBKNWZjalhiVXNId0hvdllUV2lROVVVL2w2QXJzN3djQXdXb20vTkIvQnBHcnBERllqUG04 c1hYNXlmeTJhCjkvNUx0bVcvY0ZOaU9VR2ZZdnVCMGRWcWFWd3l3T083V3dVUVJDUW9YM0IvVno2 TjdvSGJWdm1yc3dhYk5ld2QKQVVXTFEvWXJGOGFxWXdJbVpicjg1TWRSb3dvck5jcUZLSmRrNUt4 THFndHFXODRaU2VLTDN2ZjdHUlhNTG1ZVApEMkxmcmRlTG15SXJvaHQvdWVhMzVRMlhmQ1BxUG5B eWxnTGJiUG1CeTFhU3g3cWFVUit0Z1VUT0U2VE0vM3NZCjRCb29XSDBLcWlibFUxclp0Z2N5RDJG VHk2ZTFmZXVVcmlkVEZMMEVjaENkZmtBSnowanRoYitCbjgwVk9NUFkKWDZKQUpwN0Vwd3k3TFE9 PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+                            "ssl.key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZB QVNDQktjd2dnU2pBZ0VBQW9JQkFRQ3kvb0JNZkpremQ0bHQKUk8vKzdWSmZDUm5VRFp1NVVMVjhI MHpkYUorSGNQRUJlWlpOZ2EvcjRlMTR3QmFqMnpMM2twdUY1UHp0TlRKTQphbDB5OTV0dVp5L2NJ amkwMDBOK2dtZ1d2VDZaTXlHbjRzeXBDUnIzZ2VBK2EvSW9kUmE2NVdBYzVvZitXT3FxClFyVDE0 MVNBMlJWSDhhZ0FXakFvbFpjdGdyV3lmamtnNmhzQWNKNUZxS2RBMGxNcE11b1VWZlBMano1QjZI ajUKYjNaZGRic0lhZFlON1hGQTRld1doTGJZenBSVWZjeGc3TjgwVGRLOWVrVnZ0dVc3NWF0SXF1 OVp3SHg5aGVMcQpjTnBGK0U5dDUwREVsWllDMXJBUGRDcFpwVjFVUW5KTkFubEM3Zm9EUTE0L2I0 bjREZnVaVFpBOTg4WkhGN3FKCjgxUkpTVk5sQWdNQkFBRUNnZ0VCQUorZEZUbWZqbG4zeVlPNENx OXdYNWpCbTllZHZ2UzB4UEdIVTlySWRpR28KRkRIMWc1TmdCMGs0TWJRUXp0K1ZFMUR6MmwyK3dk Q2hORll5THlQSTYwQzdJVkdTN3JCSkNCSGpKZ0RKQnU1RQpTMG5UbEI5VU1FanY5dENUSCtEMThL dis2UU04aTU3REdaZDBYcnc1Mk53Qk9ObnI0NTFVejBjUmhqc2VLUHFkCjJHRWZZTG40WWE1aFlT V3VVbkR6c0FPaHp3SnlrU251L2pvSWZ2RUdLbTduM1pYS3EyNGRUTkwrQmhMbk5NMWsKc2x4UW9v K1RuaVYycm8wQ2hVemVQaERkUGhuOVQxclZzZnJENnQ5QUVaWTB3b0FkZDRZU1ZkdWpJTkhkaWdu aApJekpPanNLeS9ML2YrMkQ3UmJHNTFHd2pJRWFqRFpsS3YzVngxRWZwanlFQ2dZRUEyeGFWQWx3 VmdSRmtieDI4CnpBempFWDFPd2xKL1FSN0U2eGMvc1B6VlZtMUhuZXlETml6RmtXRE9yeDhxK0NE bW5MYUpGTnRrYkg3RGhYdHQKbEJ6T1djMmg2YU15b1AvRm9VVEErOXE4RFJiZ050eXBQSDdjRU4v SVBLZ1VVOXF3V2xUVStySmpRaWdvc1ducwpLTU5Mbm5SYTVLYlp5QTdISEovakdhU21aSmtDZ1lF QTBTYWl3MUFnb0pvdXY0ckFLUXIyOEpvMWlCZHRlcFo3CkZIeXNwNGJMRWUvb2JPUCt1NUJFbjlt aHQ3TElURXRnK1hDQ3JZSjM5cW8xRmwxMUNnTU9TQmplQUhBZmRGai8KbmRtZEhQaTBGV3ZXY1Yr alArd2hTd1lvWk1TMlN5QzJOTDR2ZnZpTFl1MTM1MmE3YzR3VStZdWNhWTBTdXFxLwp6SSt2RnE5 UkdLMENnWUJyM1VCYnV3NXpUeWJOZGl5Zm9iQ2h5Ym5lL2xMY3N0TnNrek91WmF4N01xNVIyRUg1 CmlDMTFGOTVxWmNQNENlckFPVFpnYUd1VzV3cElTNjUxZjRFd3dZYjN5bnVBdkt5R2E1MC80ajgz aW8yMU5RcTEKV0Jmc3p1Qjh6SnZGZFNQaU5XWHVUNm1DeHRiU0VqNU5DMm5OaDZmQWIwMUZxOURv RE9mNGxoRzk4UUtCZ0hDSwo2ckJRY0k0YkNTYTJnYnBVRlJiWTFBOWNFK1FRRDBDeDZiSG52V1Aw aFV2Nnp6cWNZZURtR2JnZ2N0bGpBbGFXCjdTcHlkeHo2NzhBT0lBbDRKWG8wTDFscSsvSCtaZVhK a0ZwamxYdWxZR24zUFlBTERzc3hFQkZSTElwMm1yVDgKMWMvcjdBMGFuUmVlVnlYUTdnUnQxSWVU aXMxNVRlWEVOMEhzcXFXdEFvR0FHdEg0Y2VIY3d0d1psTVZvdnJ3aQpYSWJnSHFFUmpENzBPcXhv OSsvaXJvNHZWeXlweHg2UWFwM0M2K1huRVdIZWdwV0UweEJBY0xOcW5Qa1ZHblh3CjVnYlFFTG1P b3RRZnlDZ0c5bkd3N3VTbzdXa1gyTGJReWxXK1M0ZDEyV3UyTVAyb0hMRHR4cXk5ZVpHcGJqOWkK OWpUQjExSHJNcG5XRnB0bkhzN01GYkE9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K",
+                            "nginx.conf": "IyBuZ2lueCBDb25maWd1cmF0aW9uIEZpbGUKIyBodHRwczovL3dpa2kubmdpbngub3JnL0NvbmZp Z3VyYXRpb24KCiMgUnVuIGFzIGEgbGVzcyBwcml2aWxlZ2VkIHVzZXIgZm9yIHNlY3VyaXR5IHJl YXNvbnMuCnVzZXIgbmdpbng7Cgp3b3JrZXJfcHJvY2Vzc2VzIGF1dG87CgpldmVudHMgewogIHdv cmtlcl9jb25uZWN0aW9ucyAxMDI0Owp9CgpwaWQgICAgICAgIC92YXIvcnVuL25naW54LnBpZDsK Cmh0dHAgewoKICAgICNSZWRpcmVjdCB0byBodHRwcywgdXNpbmcgMzA3IGluc3RlYWQgb2YgMzAx IHRvIHByZXNlcnZlIHBvc3QgZGF0YQoKICAgIHNlcnZlciB7CiAgICAgICAgbGlzdGVuIFs6Ol06 NDQzIHNzbDsKICAgICAgICBsaXN0ZW4gNDQzIHNzbDsKCiAgICAgICAgc2VydmVyX25hbWUgbG9j YWxob3N0OwoKICAgICAgICAjIFByb3RlY3QgYWdhaW5zdCB0aGUgQkVBU1QgYXR0YWNrIGJ5IG5v dCB1c2luZyBTU0x2MyBhdCBhbGwuIElmIHlvdSBuZWVkIHRvIHN1cHBvcnQgb2xkZXIgYnJvd3Nl cnMgKElFNikgeW91IG1heSBuZWVkIHRvIGFkZAogICAgICAgICMgU1NMdjMgdG8gdGhlIGxpc3Qg b2YgcHJvdG9jb2xzIGJlbG93LgogICAgICAgIHNzbF9wcm90b2NvbHMgICAgICAgICAgICAgIFRM U3YxLjI7CgogICAgICAgICMgQ2lwaGVycyBzZXQgdG8gYmVzdCBhbGxvdyBwcm90ZWN0aW9uIGZy b20gQmVhc3QsIHdoaWxlIHByb3ZpZGluZyBmb3J3YXJkaW5nIHNlY3JlY3ksIGFzIGRlZmluZWQg YnkgTW96aWxsYSAtIGh0dHBzOi8vd2lraS5tb3ppbGxhLm9yZy9TZWN1cml0eS9TZXJ2ZXJfU2lk ZV9UTFMjTmdpbngKICAgICAgICBzc2xfY2lwaGVycyAgICAgICAgICAgICAgICBFQ0RIRS1SU0Et QUVTMTI4LUdDTS1TSEEyNTY6RUNESEUtRUNEU0EtQUVTMTI4LUdDTS1TSEEyNTY6RUNESEUtUlNB LUFFUzI1Ni1HQ00tU0hBMzg0OkVDREhFLUVDRFNBLUFFUzI1Ni1HQ00tU0hBMzg0OkRIRS1SU0Et QUVTMTI4LUdDTS1TSEEyNTY6REhFLURTUy1BRVMxMjgtR0NNLVNIQTI1NjprRURIK0FFU0dDTTpF Q0RIRS1SU0EtQUVTMTI4LVNIQTI1NjpFQ0RIRS1FQ0RTQS1BRVMxMjgtU0hBMjU2OkVDREhFLVJT QS1BRVMxMjgtU0hBOkVDREhFLUVDRFNBLUFFUzEyOC1TSEE6RUNESEUtUlNBLUFFUzI1Ni1TSEEz ODQ6RUNESEUtRUNEU0EtQUVTMjU2LVNIQTM4NDpFQ0RIRS1SU0EtQUVTMjU2LVNIQTpFQ0RIRS1F Q0RTQS1BRVMyNTYtU0hBOkRIRS1SU0EtQUVTMTI4LVNIQTI1NjpESEUtUlNBLUFFUzEyOC1TSEE6 REhFLURTUy1BRVMxMjgtU0hBMjU2OkRIRS1SU0EtQUVTMjU2LVNIQTI1NjpESEUtRFNTLUFFUzI1 Ni1TSEE6REhFLVJTQS1BRVMyNTYtU0hBOkFFUzEyOC1HQ00tU0hBMjU2OkFFUzI1Ni1HQ00tU0hB Mzg0OkVDREhFLVJTQS1SQzQtU0hBOkVDREhFLUVDRFNBLVJDNC1TSEE6QUVTMTI4OkFFUzI1NjpS QzQtU0hBOkhJR0g6IWFOVUxMOiFlTlVMTDohRVhQT1JUOiFERVM6ITNERVM6IU1ENTohUFNLOwog ICAgICAgIHNzbF9wcmVmZXJfc2VydmVyX2NpcGhlcnMgIG9uOwoKICAgICAgICAjIE9wdGltaXpl IFNTTCBieSBjYWNoaW5nIHNlc3Npb24gcGFyYW1ldGVycyBmb3IgMTAgbWludXRlcy4gVGhpcyBj dXRzIGRvd24gb24gdGhlIG51bWJlciBvZiBleHBlbnNpdmUgU1NMIGhhbmRzaGFrZXMuCiAgICAg ICAgIyBUaGUgaGFuZHNoYWtlIGlzIHRoZSBtb3N0IENQVS1pbnRlbnNpdmUgb3BlcmF0aW9uLCBh bmQgYnkgZGVmYXVsdCBpdCBpcyByZS1uZWdvdGlhdGVkIG9uIGV2ZXJ5IG5ldy9wYXJhbGxlbCBj b25uZWN0aW9uLgogICAgICAgICMgQnkgZW5hYmxpbmcgYSBjYWNoZSAob2YgdHlwZSAic2hhcmVk IGJldHdlZW4gYWxsIE5naW54IHdvcmtlcnMiKSwgd2UgdGVsbCB0aGUgY2xpZW50IHRvIHJlLXVz ZSB0aGUgYWxyZWFkeSBuZWdvdGlhdGVkIHN0YXRlLgogICAgICAgICMgRnVydGhlciBvcHRpbWl6 YXRpb24gY2FuIGJlIGFjaGlldmVkIGJ5IHJhaXNpbmcga2VlcGFsaXZlX3RpbWVvdXQsIGJ1dCB0 aGF0IHNob3VsZG4ndCBiZSBkb25lIHVubGVzcyB5b3Ugc2VydmUgcHJpbWFyaWx5IEhUVFBTLgog ICAgICAgIHNzbF9zZXNzaW9uX2NhY2hlICAgIHNoYXJlZDpTU0w6MTBtOyAjIGEgMW1iIGNhY2hl IGNhbiBob2xkIGFib3V0IDQwMDAgc2Vzc2lvbnMsIHNvIHdlIGNhbiBob2xkIDQwMDAwIHNlc3Np b25zCiAgICAgICAgc3NsX3Nlc3Npb25fdGltZW91dCAgMjRoOwoKCiAgICAgICAgIyBVc2UgYSBo aWdoZXIga2VlcGFsaXZlIHRpbWVvdXQgdG8gcmVkdWNlIHRoZSBuZWVkIGZvciByZXBlYXRlZCBo YW5kc2hha2VzCiAgICAgICAga2VlcGFsaXZlX3RpbWVvdXQgMzAwOyAjIHVwIGZyb20gNzUgc2Vj cyBkZWZhdWx0CgogICAgICAgICMgcmVtZW1iZXIgdGhlIGNlcnRpZmljYXRlIGZvciBhIHllYXIg YW5kIGF1dG9tYXRpY2FsbHkgY29ubmVjdCB0byBIVFRQUwogICAgICAgIGFkZF9oZWFkZXIgU3Ry aWN0LVRyYW5zcG9ydC1TZWN1cml0eSAnbWF4LWFnZT0zMTUzNjAwMDsgaW5jbHVkZVN1YkRvbWFp bnMnOwoKICAgICAgICBzc2xfY2VydGlmaWNhdGUgICAgICAvZXRjL25naW54L3NzbC5jcnQ7CiAg ICAgICAgc3NsX2NlcnRpZmljYXRlX2tleSAgL2V0Yy9uZ2lueC9zc2wua2V5OwoKICAgICAgICBsb2NhdGlvbiAvIHsKICAgICAgICAgICAgcHJveHlfcGFzcyBodHRwOi8vbG9jYWxob3N0OjgwOyAjIFRPRE86IHJlcGxhY2UgcG9ydCBpZiBhcHAgbGlzdGVucyBvbiBwb3J0IG90aGVyIHRoYW4gODAKICAgICAgICAgICAgCiAgICAgICAgICAgIHByb3h5X3NldF9oZWFkZXIgQ29ubmVjdGlvbiAiIjsKICAgICAgICAgICAgcHJveHlfc2V0X2hlYWRlciBIb3N0ICRob3N0OwogICAgICAgICAgICBwcm94eV9zZXRfaGVhZGVyIFgtRm9yd2FyZGVkLUZvciAkcmVtb3RlX2FkZHI7CiAgICAgICAgfQogICAgfQp9"
+                        },
+                        "name": "nginx-config"
+                    }
+                ]
+            }
+        }
+    ]
+}

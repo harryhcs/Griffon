@@ -1,4 +1,4 @@
-const HASURA_GRAPHQL_ENGINE_HOSTNAME = 'griffondev.westeurope.azurecontainer.io';
+const HASURA_GRAPHQL_ENGINE_HOSTNAME = 'griffonapp.westeurope.azurecontainer.io/v1/graphql';
 
 const scheme = (proto) => (window.location.protocol === 'https:' ? `${proto}s` : proto);
 

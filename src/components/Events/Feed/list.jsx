@@ -141,14 +141,6 @@ export default function EventList({ showEvent }) {
               }
             }
       `}
-    // onSubscriptionData={
-    //   ({ subscriptionData, client }) => {
-    //     if (subscriptionData.data.events.length > 0) {
-    //       // const audio = new Audio(notificationSound)
-    //       // audio.play();
-    //     }
-    //   }
-    // }
     >
       {({ loading, error, data }) => {
         if (error) {

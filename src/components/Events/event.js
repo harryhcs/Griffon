@@ -120,7 +120,6 @@ const ADD_COMMENT = gql`
 export default function Event(props) {
   const classes = useStyles();
   const { event, setShowEvents } = props;
-  console.log(event);
   const [AddComment, { loading, data }] = useMutation(ADD_COMMENT);
   const [comment, setComment] = useState();
   const el = useRef(null);
@@ -166,10 +165,10 @@ export default function Event(props) {
           </Grid>
         </Grid>
       </Grid>
-      <Grid container lg={12} flexDirection="row">
+      <Grid container flexDirection="row">
         <Grid item>
           <div className={classes.eventContentContainer}>
-            <Grid container lg={12}>
+            <Grid container>
               <Grid item className={classes.content}>
                 <Typography variant="subtitle2">
                   {event.description}
@@ -264,30 +263,30 @@ export default function Event(props) {
                       return 'loading...';
                     }
                     if (data && data.event_comments.length > 0) {
-                      return data.event_comments.map((comment) => (
-                        <div className={classes.comment} key={comment.id}>
+                      return data.event_comments.map((c) => (
+                        <div className={classes.comment} key={c.id}>
                           <Grid container className={classes.commentIdentityContainer} spacing={1}>
                             <Grid item>
-                              <Avatar src={comment.user.profile_picture} />
+                              <Avatar src={c.user.profile_picture} />
                             </Grid>
                             <Grid item>
                               <Typography className={classes.commentUserName}>
-                                {comment.user.name}
+                                {c.user.name}
                               </Typography>
                               <Typography className={classes.commentResourceName}>
-                                {comment.user.resource.name}
+                                {c.user.resource.name}
                               </Typography>
                             </Grid>
                           </Grid>
                           <Grid container className={classes.commentContainer}>
                             <Grid item>
                               <Typography className={classes.commentTimestamp}>
-                                {moment(comment.created_at).fromNow()}
+                                {moment(c.created_at).fromNow()}
                               </Typography>
                             </Grid>
                             <Grid item>
                               <Typography variant="body2">
-                                {comment.comment}
+                                {c.comment}
                               </Typography>
                             </Grid>
                           </Grid>

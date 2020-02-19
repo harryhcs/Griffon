@@ -1,7 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import ReactMapGL, { Marker, FlyToInterpolator } from 'react-map-gl';
+import ReactMapGL, {
+  Marker, FlyToInterpolator, Source, Layer,
+} from 'react-map-gl';
 import { easeCubic } from 'd3-ease';
 import { Grid } from '@material-ui/core';
 import Menu from '@material-ui/core/Menu';
@@ -60,13 +62,27 @@ const useStyles = makeStyles((theme) => ({
 
 const DEFAULT_MARKER_COLOR = 'black';
 
+// const lineLayer = {
+//   id: 'route',
+//   type: 'line',
+//   source: 'route',
+//   layout: {
+//     'line-join': 'round',
+//     'line-cap': 'round',
+//   },
+//   paint: {
+//     'line-color': '#888',
+//     'line-width': 8,
+//   },
+// };
+
 export default function Map() {
   const classes = useStyles();
   const [viewport, setViewport] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
-    latitude: -33.2577,
-    longitude: 18.9376,
+    latitude: -32.9643724,
+    longitude: 18.6221071,
     zoom: 10,
   });
   const [anchorEl, setAnchorEl] = useState(null);
@@ -75,7 +91,57 @@ export default function Map() {
   const [showResource, setShowResource] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showCreateEvent, setShowCreateEvents] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [coords, setCoords] = useState();
+
+  const reactMap = useRef(null);
+  const getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
+  const handleAddHistory = (d) => {
+    const geojson = {
+      type: 'Feature',
+      properties: {
+        color: getRandomColor(),
+        name: 'Herman',
+      },
+      geometry: {
+        type: 'LineString',
+        coordinates: d.map((point) => (
+          [point.longitude, point.latitude]
+        )),
+      },
+    };
+
+    const map = reactMap.current.getMap();
+    if (map.getLayer('lines')) {
+      map.removeLayer('lines');
+    }
+
+    if (map.getSource('lines')) {
+      map.removeSource('lines');
+    }
+    map.addSource('lines', {
+      type: 'geojson',
+      data: geojson,
+    });
+    map.addLayer({
+      id: 'lines',
+      type: 'line',
+      source: 'lines',
+      paint: {
+        'line-width': 3,
+        'line-color': ['get', 'color'],
+      },
+    });
+    setShowHistory(true);
+  };
 
   const handleClick = (evt) => {
     if (showCreateEvent) {
@@ -137,7 +203,7 @@ export default function Map() {
           {
             showResource ? (
               <Grid item className={classes.event}>
-                <Resource resourceId={resource.id} setShowResource={setShowResource} />
+                <Resource handleAddHistory={handleAddHistory} resourceId={resource.id} setShowResource={setShowResource} />
               </Grid>
             ) : null
           }
@@ -163,6 +229,7 @@ export default function Map() {
       </Grid> */}
       <ReactMapGL
         {...viewport}
+        ref={reactMap}
         onViewportChange={setViewport}
         mapStyle="mapbox://styles/mapbox/streets-v9"
         mapboxApiAccessToken="pk.eyJ1IjoicHBmY25zIiwiYSI6ImNrNW53MG0yeDBmcmkzbW5zZGkybWdtcjAifQ.lK9sv5uVdJieNLCV6krYwg"
@@ -234,17 +301,20 @@ export default function Map() {
             if (data && data.events.length > 0) {
               return data.events.map((e) => (
                 e.latitude && e.longitude ? (
-                  <Marker onClick={() => showEvent(e)} className={classes.marker} key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
-                    {
+                  <Marker className={classes.marker} key={`marker-${e.id}`} longitude={e.longitude} latitude={e.latitude}>
+                    <svg width="10" height="10" onClick={() => showEvent(e)}>
+                      <circle cx="5" cy="5" r="5" fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color} />
+                    </svg>
+                    {/* {
                       e.event_tags.length === 0
                         ? (
-                          <svg width="10" height="10">
+                          <svg width="10" height="10" onClick={handleClick}>
                             <circle cx="5" cy="5" r="5" fill={e.event_tags.length === 0 ? DEFAULT_MARKER_COLOR : e.event_tags[0].tag.color} />
                           </svg>
                         )
                         // eslint-disable-next-line react/no-danger
                         : <div dangerouslySetInnerHTML={{ __html: e.event_tags[0].tag.svg_data }} />
-                    }
+                    } */}
                   </Marker>
                 ) : null
               ));
