@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-filename-extension */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useEffect, useRef } from 'react';
@@ -254,16 +255,16 @@ export default function Event(props) {
               }
           `}
                 >
-                  {({ loading, error, data }) => {
-                    if (error) {
-                      console.log(error);
-                      return JSON.stringify(error);
+                  {(results) => {
+                    if (results.error) {
+                      console.log(results.error);
+                      return JSON.stringify(results.error);
                     }
-                    if (loading) {
+                    if (results.loading) {
                       return 'loading...';
                     }
-                    if (data && data.event_comments.length > 0) {
-                      return data.event_comments.map((c) => (
+                    if (results.data && results.data.event_comments.length > 0) {
+                      return results.data.event_comments.map((c) => (
                         <div className={classes.comment} key={c.id}>
                           <Grid container className={classes.commentIdentityContainer} spacing={1}>
                             <Grid item>

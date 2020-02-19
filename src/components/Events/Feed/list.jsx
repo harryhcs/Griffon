@@ -12,7 +12,7 @@ import moment from 'moment';
 import gql from 'graphql-tag';
 
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     width: '100%',
     height: '100%',

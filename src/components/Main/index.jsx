@@ -1,8 +1,9 @@
+/* eslint-disable max-len */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ReactMapGL, {
-  Marker, FlyToInterpolator, Source, Layer,
+  Marker, FlyToInterpolator,
 } from 'react-map-gl';
 import { easeCubic } from 'd3-ease';
 import { Grid } from '@material-ui/core';
@@ -23,7 +24,7 @@ import Search from '../Search';
 import Actions from '../Actions';
 import Resource from '../Resources';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   leftContainer: {
     position: 'fixed',
     borderRadius: 5,
@@ -91,13 +92,14 @@ export default function Map() {
   const [showResource, setShowResource] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showCreateEvent, setShowCreateEvents] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [setShowHistory] = useState(false);
   const [coords, setCoords] = useState();
 
   const reactMap = useRef(null);
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
+    // eslint-disable-next-line no-plusplus
     for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
@@ -348,9 +350,9 @@ export default function Map() {
               return 'loading...';
             }
             if (data && data.resources.length > 0) {
-              return data.resources.map((resource) => resource.locations.map((location) => (
+              return data.resources.map((r) => resource.locations.map((location) => (
                 <Marker key={`marker-${location.id}`} longitude={location.longitude} latitude={location.latitude}>
-                  <AccountIcon fontSize="small" onClick={() => handleResourceClick(resource)} />
+                  <AccountIcon fontSize="small" onClick={() => handleResourceClick(r)} />
                 </Marker>
               )));
             }
