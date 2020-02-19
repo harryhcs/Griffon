@@ -20,7 +20,7 @@ import LandingPage from './components/LandingPage';
 
 const App = () => {
   const {
-    loading, headers, isAuthenticated, logout
+    loading, headers, isAuthenticated,
   } = useAuth0();
   if (isAuthenticated) {
     if (!loading) {
