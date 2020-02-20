@@ -12,4 +12,4 @@ export const authClientId = 'nAXDIZAr1oqb8Vkj2PKC8EMfG9ojAYkF';
 export const authDomain = 'ppfcns.eu.auth0.com';
 export const callbackUrl = `${scheme(
   'https',
-)}://distracted-heyrovsky-d5ba55.netlify.com/callback`;
+)}://localhost:5000/callback`;

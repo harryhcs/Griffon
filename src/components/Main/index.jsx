@@ -87,9 +87,9 @@ export default function Map() {
   const [showResource, setShowResource] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showCreateEvent, setShowCreateEvents] = useState(false);
-  const [setShowHistory] = useState(false);
+  const [history, setShowHistory] = useState(false);
   const [coords, setCoords] = useState();
-
+  console.log(history);
   const reactMap = useRef(null);
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';

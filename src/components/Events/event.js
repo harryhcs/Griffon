@@ -124,7 +124,6 @@ export default function Event(props) {
   const [AddComment, { loading, data }] = useMutation(ADD_COMMENT);
   const [comment, setComment] = useState();
   const el = useRef(null);
-
   const handleDelete = () => {
     console.info('You clicked the delete icon.');
   };
@@ -219,7 +218,7 @@ export default function Event(props) {
                     <Chip
                       size="small"
                       // icon={t.tag.svg_data}
-                      label={t.tag.name}
+                      label={`${t.tag.name}`}
                       onClick={handleTagClick}
                       onDelete={handleDelete}
                       color={t.tag.color}
@@ -257,7 +256,6 @@ export default function Event(props) {
                 >
                   {(results) => {
                     if (results.error) {
-                      console.log(results.error);
                       return JSON.stringify(results.error);
                     }
                     if (results.loading) {
