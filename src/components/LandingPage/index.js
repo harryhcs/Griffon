@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 
 import { useAuth0 } from '../Auth';
 import './index.css';
+import Logo from '../../assets/images/logo.png';
 
 const LandingPage = () => {
   const { loading, loginWithRedirect } = useAuth0();
@@ -24,31 +25,25 @@ const LandingPage = () => {
           justify="center"
           style={{ minHeight: '100vh' }}
         >
-
           <Grid item>
             {loading ? (
               <>
-                <img src="https://media.istockphoto.com/vectors/bird-vulture-icon-vector-black-outline-icon-illustration-vector-id483045290" width={40} alt="Zacto Icon" />
-                <br />
-                <CircularProgress color="primary" />
+                <img src={Logo} width={250} alt="Griffon Logo" />
               </>
             ) : (
               <div style={{ textAlign: 'center' }}>
-                <img src="https://media.istockphoto.com/vectors/bird-vulture-icon-vector-black-outline-icon-illustration-vector-id483045290" width={40} alt="Zacto Icon" />
+                <img src={Logo} width={250} alt="Griffon Logo" />
                 <br />
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={() => loginWithRedirect({})}
                 >
-                            Access Griffon
+                  Access Griffon
                 </Button>
-
               </div>
             )}
-
           </Grid>
-
         </Grid>
       </div>
     </div>

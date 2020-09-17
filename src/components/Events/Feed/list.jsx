@@ -7,9 +7,9 @@ import { IconButton, Typography, Grid } from '@material-ui/core';
 import LocationIcon from '@material-ui/icons/Place';
 
 import { FixedSizeList } from 'react-window';
-import { Subscription } from 'react-apollo';
 import moment from 'moment';
-import gql from 'graphql-tag';
+
+import { gql, useSubscription } from '@apollo/client';
 
 
 const useStyles = makeStyles(() => ({
@@ -49,6 +49,56 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+const EVENTS_SUB = gql`
+  subscription {
+    events(order_by: { created_at: desc }) {
+      id
+      created_at
+      description
+      event_comments(order_by: { created_at: asc }) {
+        user {
+          id
+          name
+          profile_picture
+          resource {
+            id
+            name
+          }
+        }
+        comment
+        created_at
+      }
+      user {
+        id
+        name
+        profile_picture
+        resource {
+          id
+          name
+        }
+      }
+      latitude
+      longitude
+      channel {
+        id
+        name
+      }
+      event_tags {
+        tag {
+          id
+          name
+          tag_parameters {
+            id
+            field_name
+            field_type
+          }
+        }
+        parameters
+      }
+    }
+  }
+`;
+
 function renderRow(props) {
   const classes = useStyles();
   const { index, data } = props;
@@ -61,7 +111,7 @@ function renderRow(props) {
         {data.events[index].user.resource ? (
           <Typography className={classes.creator}>
             {' '}
-          by
+            by
             {' '}
             {data.events[index].user.resource.name}
           </Typography>
@@ -89,82 +139,26 @@ function renderRow(props) {
 
 export default function EventList({ showEvent }) {
   const classes = useStyles();
+  const { loading, error, data } = useSubscription(EVENTS_SUB);
 
-  return (
-    <Subscription
-      subscription={gql`
-      subscription { 
-        events(order_by: {created_at: desc}) {
-                id
-                created_at
-                description
-                event_comments(order_by: {created_at: asc}) {
-                  user {
-                    id
-                    name
-                    profile_picture
-                    resource {
-                      id
-                      name
-                    }
-                  }
-                  comment
-                  created_at
-                }
-                user {
-                  id
-                  name
-                  profile_picture
-                  resource {
-                    id
-                    name
-                  }
-                }
-                latitude
-                longitude
-                channel {
-                  id
-                  name
-                }
-                event_tags {
-                  tag {
-                    id
-                    name
-                    tag_parameters {
-                      id
-                      field_name
-                      field_type
-                    }
-                  }
-                  parameters 
-                }
-              }
-            }
-      `}
-    >
-      {({ loading, error, data }) => {
-        if (error) {
-          return JSON.stringify(error);
-        }
-        if (loading) {
-          return 'loading...';
-        }
-        if (data) {
-          return data.events.length > 0 ? (
-            <div className={classes.root}>
-              <FixedSizeList
-                height={500}
-                itemSize={46}
-                itemCount={data.events.length}
-                itemData={{ events: data.events, showEvent }}
-              >
-                {renderRow}
-              </FixedSizeList>
-            </div>
-          ) : null;
-        }
-        return null;
-      }}
-    </Subscription>
-  );
+  if (error) {
+    return JSON.stringify(error);
+  }
+  if (loading) {
+    return 'loading...';
+  }
+  if (data) {
+    return data.events.length > 0 ? (
+      <div className={classes.root}>
+        <FixedSizeList
+          height={500}
+          itemSize={46}
+          itemCount={data.events.length}
+          itemData={{ events: data.events, showEvent }}
+        >
+          {renderRow}
+        </FixedSizeList>
+      </div>
+    ) : null;
+  }
 }

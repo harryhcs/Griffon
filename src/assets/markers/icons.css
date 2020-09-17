@@ -1,0 +1,9 @@
+.default-icon {
+    display: block;
+    text-indent: -9999px;
+    width: 15px;
+    height: 15px;
+    background: url(../markers/chevron.svg);
+    background-size: 15px 15px;
+    transform: rotate(0.5turn);
+}

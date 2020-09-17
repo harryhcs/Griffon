@@ -3,19 +3,22 @@
 import { hot } from 'react-hot-loader';
 import React from 'react';
 import 'typeface-roboto';
-import { ApolloProvider } from 'react-apollo';
-import ApolloClient from 'apollo-client';
-import { WebSocketLink } from 'apollo-link-ws';
-import { HttpLink } from 'apollo-link-http';
-import { split } from 'apollo-link';
-import { getMainDefinition } from 'apollo-utilities';
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { BrowserRouter, Switch } from 'react-router-dom';
+
+import {
+  ApolloClient,
+  ApolloProvider,
+  InMemoryCache,
+  split,
+  HttpLink,
+} from '@apollo/client';
+import { WebSocketLink } from '@apollo/client/link/ws';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react'
 import { useAuth0 } from './components/Auth';
+import { store, persistor } from './redux/store';
 
-import Main from './components/Main';
-
-import PrivateRoute from './components/PrivateRoute';
+import Router from './routes';
 import LandingPage from './components/LandingPage';
 
 const App = () => {
@@ -30,7 +33,6 @@ const App = () => {
           Authorization: headers,
         },
       });
-      // Create a WebSocket link:
       const wsLink = new WebSocketLink({
         uri: 'wss://griffonapi.herokuapp.com/v1/graphql',
         options: {
@@ -43,9 +45,6 @@ const App = () => {
           }),
         },
       });
-
-      // using the ability to split links, you can send data to each link
-      // depending on what kind of operation is being sent
       const link = split(
         // split based on operation type
         ({ query }) => {
@@ -60,18 +59,16 @@ const App = () => {
       const client = new ApolloClient({
         link,
         cache: new InMemoryCache(),
-      });
+      })
 
       return (
-        <ApolloProvider client={client}>
-          <BrowserRouter>
-            <div>
-              <Switch>
-                <PrivateRoute path="/" component={Main} />
-              </Switch>
-            </div>
-          </BrowserRouter>
-        </ApolloProvider>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <ApolloProvider client={client}>
+              <Router />
+            </ApolloProvider>
+          </PersistGate>
+        </Provider>
       );
     }
   }

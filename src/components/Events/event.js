@@ -16,9 +16,7 @@ import InputBase from '@material-ui/core/InputBase';
 import MenuIcon from '@material-ui/icons/Menu';
 import SendIcon from '@material-ui/icons/Send';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import gql from 'graphql-tag';
-import { useMutation } from '@apollo/react-hooks';
-import { Subscription } from 'react-apollo';
+import { gql, useMutation, useSubscription } from "@apollo/client";
 import moment from 'moment';
 
 const useStyles = makeStyles((theme) => ({
@@ -110,10 +108,31 @@ const useStyles = makeStyles((theme) => ({
 
 const ADD_COMMENT = gql`
   mutation AddComment($comment: String!, $event_id: Int!) {
-    insert_event_comments(objects:[{comment: $comment, event_id: $event_id}]) {
+    insert_event_comments(
+      objects: [{ comment: $comment, event_id: $event_id }]
+    ) {
       returning {
         id
       }
+    }
+  }
+`;
+
+const GET_COMMENTS = gql`
+  subscription getComments($eventId: Int!) {
+    event_comments(where: { event_id: { _eq: $eventId } }) {
+      id
+      user {
+        id
+        name
+        profile_picture
+        resource {
+          id
+          name
+        }
+      }
+      comment
+      created_at
     }
   }
 `;
@@ -122,6 +141,11 @@ export default function Event(props) {
   const classes = useStyles();
   const { event, setShowEvents } = props;
   const [AddComment, { loading, data }] = useMutation(ADD_COMMENT);
+  const [loadingSub, dataSub] = useSubscription(GET_COMMENTS, {
+    variables: {
+      eventId: event.id,
+    },
+  });
   const [comment, setComment] = useState();
   const el = useRef(null);
   const handleDelete = () => {
@@ -158,7 +182,12 @@ export default function Event(props) {
       <Grid container className={classes.container} lg={12}>
         <Grid container>
           <Grid item className={classes.close} lg={12}>
-            <IconButton className={classes.menuButton} color="inherit" aria-label="menu" onClick={hideEvent}>
+            <IconButton
+              className={classes.menuButton}
+              color="inherit"
+              aria-label="menu"
+              onClick={hideEvent}
+            >
               <CloseIcon />
             </IconButton>
             <Divider />
@@ -170,11 +199,13 @@ export default function Event(props) {
           <div className={classes.eventContentContainer}>
             <Grid container>
               <Grid item className={classes.content}>
-                <Typography variant="subtitle2">
-                  {event.description}
-                </Typography>
+                <Typography variant="subtitle2">{event.description}</Typography>
               </Grid>
-              <Grid container className={classes.creatorInformation} spacing={1}>
+              <Grid
+                container
+                className={classes.creatorInformation}
+                spacing={1}
+              >
                 <Grid item>
                   <Avatar
                     alt={event.user.name}
@@ -184,34 +215,28 @@ export default function Event(props) {
                 </Grid>
                 <Grid item>
                   <Typography className={classes.creator}>
-                    {event.user.resource.name}
-                    {' '}
-                    (
-                    {event.user.name}
-                    )
+                    {event.user.resource.name} ({event.user.name})
                   </Typography>
                   <Typography variant="caption">
-                    {moment(event.created_at).format('LLLL')}
+                    {moment(event.created_at).format("LLLL")}
                   </Typography>
                   <br />
                   {event.latitude && event.longitude ? (
                     <div>
                       <MarkerIcon fontSize="small" color="secondary" />
                       <Typography variant="caption">
-                        (
-                        {event.latitude}
-                        ,
-                        {' '}
-                        {event.longitude}
-                        )
+                        ({event.latitude}, {event.longitude})
                       </Typography>
                     </div>
-
                   ) : null}
                 </Grid>
 
                 <Grid item>
-                  <Chip label={event.channel.name} variant="outlined" color="secondary" />
+                  <Chip
+                    label={event.channel.name}
+                    variant="outlined"
+                    color="secondary"
+                  />
                 </Grid>
                 <Grid item>
                   {event.event_tags.map((t) => (
@@ -234,74 +259,45 @@ export default function Event(props) {
                 <Typography className={classes.commentsTitle}>
                   Comments
                 </Typography>
-                <Subscription
-                  subscription={gql`
-              subscription {
-                event_comments(where: {event_id: {_eq: ${event.id}}}) {
-                  id
-                  user {
-                    id
-                    name
-                    profile_picture
-                    resource {
-                      id
-                      name
-                    }
-                  }
-                  comment
-                  created_at
-                }
-              }
-          `}
-                >
-                  {(results) => {
-                    if (results.error) {
-                      return JSON.stringify(results.error);
-                    }
-                    if (results.loading) {
-                      return 'loading...';
-                    }
-                    if (results.data && results.data.event_comments.length > 0) {
-                      return results.data.event_comments.map((c) => (
-                        <div className={classes.comment} key={c.id}>
-                          <Grid container className={classes.commentIdentityContainer} spacing={1}>
-                            <Grid item>
-                              <Avatar src={c.user.profile_picture} />
-                            </Grid>
-                            <Grid item>
-                              <Typography className={classes.commentUserName}>
-                                {c.user.name}
-                              </Typography>
-                              <Typography className={classes.commentResourceName}>
-                                {c.user.resource.name}
-                              </Typography>
-                            </Grid>
-                          </Grid>
-                          <Grid container className={classes.commentContainer}>
-                            <Grid item>
-                              <Typography className={classes.commentTimestamp}>
-                                {moment(c.created_at).fromNow()}
-                              </Typography>
-                            </Grid>
-                            <Grid item>
-                              <Typography variant="body2">
-                                {c.comment}
-                              </Typography>
-                            </Grid>
-                          </Grid>
-                        </div>
-                      ));
-                    }
-                    return null;
-                  }}
-                </Subscription>
+                {loadingSub && "loading..."}
+                {dataSub &&
+                  dataSub.event_comments.map((c) => (
+                    <div className={classes.comment} key={c.id}>
+                      <Grid
+                        container
+                        className={classes.commentIdentityContainer}
+                        spacing={1}
+                      >
+                        <Grid item>
+                          <Avatar src={c.user.profile_picture} />
+                        </Grid>
+                        <Grid item>
+                          <Typography className={classes.commentUserName}>
+                            {c.user.name}
+                          </Typography>
+                          <Typography className={classes.commentResourceName}>
+                            {c.user.resource.name}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                      <Grid container className={classes.commentContainer}>
+                        <Grid item>
+                          <Typography className={classes.commentTimestamp}>
+                            {moment(c.created_at).fromNow()}
+                          </Typography>
+                        </Grid>
+                        <Grid item>
+                          <Typography variant="body2">{c.comment}</Typography>
+                        </Grid>
+                      </Grid>
+                    </div>
+                  ))}
                 <div id="el" ref={el} />
               </Grid>
             </Grid>
           </div>
         </Grid>
       </Grid>
-
 
       <div className={classes.commentInputContainer}>
         <Paper component="form" className={classes.commentRoot}>
@@ -313,9 +309,14 @@ export default function Event(props) {
             onInputCapture={handleComment}
             className={classes.input}
             placeholder="Create comment"
-            inputProps={{ 'aria-label': 'create comment' }}
+            inputProps={{ "aria-label": "create comment" }}
           />
-          <IconButton disabled={!comment || loading} className={classes.iconButton} aria-label="search" onClick={addComment}>
+          <IconButton
+            disabled={!comment || loading}
+            className={classes.iconButton}
+            aria-label="search"
+            onClick={addComment}
+          >
             {loading ? <CircularProgress color="secondary" /> : <SendIcon />}
           </IconButton>
         </Paper>
