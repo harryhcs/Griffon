@@ -1,13 +1,9 @@
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import {
-  Circle,
-  FeatureGroup,
   LayerGroup,
   LayersControl,
   Map,
-  Marker,
-  Popup,
-  Rectangle,
+  Polyline,
   TileLayer,
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -22,6 +18,12 @@ const GET_RESOURCES = gql`
     resources {
       id
       name
+      icon
+      attachments {
+        id
+        uri
+        event
+      }
       assigned_user {
         name
         profile_picture
@@ -50,7 +52,9 @@ export default function Home() {
   const dispatch = useDispatch();
   const { viewport } = useSelector((state) => state.mapReducer);
   const { data, loading, error } = useSubscription(GET_RESOURCES);
+  const [historyLines, setHistoryLines] = useState({path:[], color: 'red'});
   const handleMoveend = (e) => {
+    console.log(historyLines.path)
     dispatch({
       type: 'UPDATE_VIEWSTATE',
       payload: {
@@ -100,9 +104,15 @@ export default function Home() {
             {loading && "Loading"}
             {data && data.resources.map(resource => {
               if (resource.geolocations.length) {
-                return <ResourceMarker key={resource.id} resource={resource} position={{ lat: resource.geolocations[0].latitude, lng: resource.geolocations[0].longitude }} heading={resource.geolocations[0].heading} />
+                return <ResourceMarker setHistoryLines={setHistoryLines} key={resource.id} resource={resource} position={{ lat: resource.geolocations[0].latitude, lng: resource.geolocations[0].longitude }} heading={resource.geolocations[0].heading} />
               }
             })}
+          </LayerGroup>
+          
+        </Overlay>
+        <Overlay checked name="Paths">
+          <LayerGroup>
+            {historyLines && <Polyline positions={historyLines.path} color={historyLines.color} smoothFactor={1} />}
           </LayerGroup>
         </Overlay>
 

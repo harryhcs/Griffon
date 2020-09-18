@@ -1,15 +1,19 @@
 /* eslint-disable react/jsx-filename-extension */
-import React from "react";
+import React, {useState} from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   Typography,
   Grid,
   Divider,
+  Button,
+  TextField,
 } from "@material-ui/core";
 import Avatar from "@material-ui/core/Avatar";
 import moment from "moment";
 import { Marker, Popup } from "react-leaflet";
+
+import { Link } from "react-router-dom";
 
 import BatteryCharging20Icon from "@material-ui/icons/BatteryCharging20";
 import BatteryCharging30Icon from "@material-ui/icons/BatteryCharging30";
@@ -27,12 +31,60 @@ import Battery90Icon from "@material-ui/icons/Battery90";
 import BatteryFullIcon from "@material-ui/icons/BatteryFull";
 import L from "leaflet";
 
+import { gql, useLazyQuery } from "@apollo/client";
+
 import ChecvronIcon from "../../assets/markers/chevron.svg";
+import CameraIcon from "../../assets/markers/camera.svg";
+import CarIcon from "../../assets/markers/car.svg";
+
+const GET_HISTORY = gql`
+  query getHistory($resourceId: Int!, $from: timestamptz!, $to: timestamptz!) {
+    resources_by_pk(id: $resourceId) {
+      geolocations(where: { created_at: { _gte: $from, _lte: $to } }) {
+        id
+        latitude
+        longitude
+        altitude
+        speed
+        accuracy
+        created_at
+      }
+    }
+  }
+`;
 
 export default function ResourceMarker(props) {
   const classes = useStyles();
-  const { position, heading, resource } = props;
+  const { position, heading, resource, setHistoryLines } = props;
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date());
   const battery = resource.attributes.find((e) => e.key === "battery");
+  const getRandomColor = () => {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+  const [
+    getHistory,
+    { dataHistory, loadingHistory, errorHistory },
+  ] = useLazyQuery(GET_HISTORY, {
+    onCompleted: (e) => {
+      setHistoryLines({
+        color: getRandomColor(),
+        path: [
+          e.resources_by_pk.geolocations.map((loc) => [
+            loc.latitude,
+            loc.longitude,
+          ]),
+        ],
+      });
+    },
+  });
+
   var ms =
     new Date().getTime() -
     new Date(resource.geolocations[0].created_at).getTime();
@@ -108,12 +160,43 @@ export default function ResourceMarker(props) {
       }
     }
   }
+  const setHistoryDate = (date, t) => {
+    if (t === "from") {
+      setFromDate(date);
+    }
+    if (t === "to") {
+      setToDate(date);
+    }
+  };
+
+  const handleGetHistory = () => {
+    getHistory({
+      variables: {
+        resourceId: resource.id,
+        from: fromDate,
+        to: toDate,
+      },
+    });
+  }
+  const showGallery = () => {
+    
+  }
   const defaultIcon = new L.divIcon({
     className: "",
     html: `<img src=${ChecvronIcon} width="12px" style="transform: rotate(${heading}deg); opacity: ${opacity}; display: ${display}"/>`,
   });
+  const cameraIcon = new L.divIcon({
+    className: "",
+    html: `<img src=${CameraIcon} width="12px" style="transform: rotate(${heading}deg); opacity: ${opacity}; display: ${display}"/>`,
+  });
+  const carIcon = new L.divIcon({
+    className: "",
+    html: `<img src=${CarIcon} width="12px" style="transform: rotate(${heading}deg); opacity: ${opacity}; display: ${display}"/>`,
+  });
+
+
   return (
-    <Marker position={position} icon={defaultIcon}>
+    <Marker position={position} icon={resource.icon ? resource.icon === 'camera' ? cameraIcon : resource.icon === 'car' ? carIcon : defaultIcon:  defaultIcon}>
       <Popup className={classes.root}>
         <div className={classes.resource}>
           <Grid container spacing={2} className={classes.resourceInfoContainer}>
@@ -133,9 +216,7 @@ export default function ResourceMarker(props) {
                   className={classes.avatar}
                 />
                 <br />
-                {battery
-                  ? getBattery(battery.value)
-                  : null}{" "}
+                {battery ? getBattery(battery.value) : null}{" "}
                 <Typography variant="caption">
                   ({battery.value.level.toFixed(0)}%)
                 </Typography>
@@ -161,6 +242,18 @@ export default function ResourceMarker(props) {
           <br />
           <Divider />
           <br />
+          {resource.attributes.length > 0 ? (
+            <Grid container spacing={2} className={classes.row}>
+              <Grid item lg={4}>
+                Last activity:
+              </Grid>
+              <Grid item lg={6}>
+                <Typography variant="caption">
+                  {moment(resource.attributes[0].created_at).fromNow()}
+                </Typography>
+              </Grid>
+            </Grid>
+          ) : null}
           {resource.geolocations.length > 0 ? (
             <div>
               <Grid container spacing={2} className={classes.row}>
@@ -219,6 +312,62 @@ export default function ResourceMarker(props) {
               ) : null}
             </div>
           ) : null}
+          <br />
+          <Divider />
+          <br />
+          <Grid container>
+            <Grid item>
+              <TextField
+                onChange={(e) => setHistoryDate(e.target.value, "from")}
+                id="datetime-local-from"
+                label="Get history from"
+                type="datetime-local"
+                defaultValue={moment(new Date()).format("YYYY-MM-DDTHH:MM")}
+                className={classes.PickerTextField}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <TextField
+                onChange={(e) => setHistoryDate(e.target.value, "to")}
+                id="datetime-local-to"
+                label="to"
+                type="datetime-local"
+                defaultValue={moment(new Date()).format("YYYY-MM-DDTHH:MM")}
+                className={classes.PickerTextField}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleGetHistory}
+              >
+                Show history
+              </Button>
+            </Grid>
+          </Grid>
+          {resource.attachments.length > 0 && (
+            <>
+              <br />
+              <Divider />
+              <br />
+              <Grid container>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={showGallery}
+                    component={Link}
+                    to={`/gallery/${resource.id}`}
+                  >
+                    View Gallery
+                  </Button>
+                </Grid>
+              </Grid>
+            </>
+          )}
           {/* <Grid container>
             <Grid item>
               <Button onClick={handleClick}>Show history for today</Button>
@@ -257,6 +406,12 @@ const useStyles = makeStyles((theme) => ({
   resourceInfoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  PickerTextField: {
+    marginLeft: theme.spacing(1),
+    marginRight: theme.spacing(1),
+    width: 200,
+    marginBottom: 10,
   },
 }));
 

@@ -39,6 +39,7 @@
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.18",
     "react-leaflet": "^2.7.0",
+    "react-leaflet-multi-options-polyline": "^2.0.3",
     "react-leaflet-rotatedmarker": "^0.1.0",
     "react-loading-io": "^2.2.0",
     "react-map-gl": "^5.2.1",

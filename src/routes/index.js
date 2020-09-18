@@ -6,14 +6,16 @@ import {
 import PrivateRoute from '../components/PrivateRoute';
 import Home from './home';
 import Resources from './resources';
+import Gallery from './gallery'
 
 export default function BasicExample() {
   return (
     <BrowserRouter>
       <div>
         <Switch>
-          <PrivateRoute path="/" component={Home} />
+          <PrivateRoute path="/gallery/:id" component={Gallery} />
           <PrivateRoute path="/resources/" component={Resources} />
+          <PrivateRoute path="/" component={Home} />
         </Switch>
       </div>
     </BrowserRouter>
