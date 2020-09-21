@@ -1,57 +1,218 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import DownIcon from '@material-ui/icons/KeyboardArrowDown';
-import UpIcon from '@material-ui/icons/KeyboardArrowUp';
-import Toolbar from '@material-ui/core/Toolbar';
-import Grid from '@material-ui/core/Grid';
-import Divider from '@material-ui/core/Divider';
+import { Divider, Typography, Grid } from '@material-ui/core';
+import LocationIcon from '@material-ui/icons/Place';
 
-import FeedList from './list';
+import { FixedSizeList } from 'react-window';
+import moment from 'moment';
 
-const useStyles = makeStyles((theme) => ({
-  inputInput: {
-    transition: theme.transitions.create('width'),
+import { gql, useSubscription } from '@apollo/client';
+
+
+const useStyles = makeStyles(() => ({
+  root: {
     width: '100%',
+    height: '100%',
+    // backgroundColor: theme.palette.background.paper,
   },
-  menuButton: {
-    color: 'black',
+  item: {
+    '&:hover': {
+      background: '#efefef',
+    },
+    cursor: 'pointer',
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
+  description: {
+    position: 'relative',
+    display: 'block',
+    width: 220,
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  },
+  timestamp: {
+    color: 'grey',
+    fontSize: 12,
+  },
+  creator: {
+    color: 'grey',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  channel: {
+    fontWeight: 'bold',
+  },
+  galleryItem: {
+    width: 120,
+  }
 }));
 
-export default function EventsFeed(props) {
-  const { showEvent } = props;
-  const classes = useStyles();
-  const [isHidden, setShow] = useState(false);
+const EVENTS_SUB = gql`
+  subscription {
+    events(order_by: { created_at: desc }) {
+      id
+      created_at
+      description
+      event_comments(order_by: { created_at: asc }) {
+        user {
+          id
+          name
+          profile_picture
+          resource {
+            id
+            name
+          }
+        }
+        comment
+        created_at
+      }
+      user {
+        id
+        name
+        profile_picture
+        resource {
+          id
+          name
+        }
+      }
+      latitude
+      longitude
+      channel {
+        id
+        name
+      }
+      event_tags {
+        tag {
+          id
+          name
+          tag_parameters {
+            id
+            field_name
+            field_type
+          }
+        }
+        parameters
+      }
+    }
+  }
+`;
 
-  const handleToggleshowFeed = () => {
-    setShow(!isHidden);
-  };
+const ATTACHMENT_SUB = gql`
+  subscription {
+    attachments(order_by: { created_at: desc }) {
+      id
+      event
+      uri
+      created_at
+    }
+  }
+`;
+
+function renderRow(props) {
+  const classes = useStyles();
+  const { index, data } = props;
   return (
-    <Grid container>
-      <Grid item lg={12}>
-        <Toolbar>
-          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" onClick={handleToggleshowFeed}>
-            {isHidden ? <DownIcon /> : <UpIcon />}
-          </IconButton>
-          <Typography>
-            {isHidden ? 'Show' : 'Hide'}
+    <Grid container className={classes.item} onClick={() => data.showEvent(data.events[index])}>
+      <Grid item>
+        <Typography className={classes.description}>
+          {data.events[index].description}
+        </Typography>
+        {data.events[index].user ? (
+          <Typography className={classes.creator}>
             {' '}
-            latest events
+            by
+            {' '}
+            {data.events[index].user.resource.name}
           </Typography>
-        </Toolbar>
-        {/* <div className={classes.feedContainer} style={{ display: isHidden ? 'none' : null }}>
-          <Divider />
-          <FeedList />
-        </div> */}
+        ) : null}
+
+        <Typography className={classes.timestamp}>
+          {moment(data.events[index].created_at).fromNow()}
+          {' '}
+          in
+          {' '}
+          <span className={classes.channel}>{data.events[index].channel.name}</span>
+        </Typography>
+
       </Grid>
-      <Grid item style={{ display: isHidden ? 'none' : null }} lg={12}>
-        <Divider />
-        <FeedList showEvent={showEvent} />
-      </Grid>
+      {/* <Grid item>
+        {data.events[index].latitude && data.events[index].longitude ? (
+          <IconButton>
+            <LocationIcon color="secondary" />
+          </IconButton>
+        ) : (null)}
+      </Grid> */}
     </Grid>
   );
+}
+function renderImage(props) {
+  const classes = useStyles();
+  const { index, data } = props;
+  return (
+    <img className={classes.galleryItem} src={data.attachments[index].uri} />
+  );
+}
+
+function Gallery() {
+  const { loading, error, data } = useSubscription(ATTACHMENT_SUB);
+  if (error) {
+    return JSON.stringify(error);
+  }
+  if (loading) {
+    return 'loading...';
+  }
+  if (data) {
+    return data.attachments.length > 0 ? (
+      <FixedSizeList
+        height={window.innerHeight - 370-64}
+        width={240}
+        itemSize={46}
+        itemCount={data.attachments.length}
+        itemData={{ attachments: data.attachments }}
+      >
+        {renderImage}
+      </FixedSizeList>
+    ) : null;
+  }
+}
+
+function EventList({ showEvent }) {
+  
+  const { loading, error, data } = useSubscription(EVENTS_SUB);
+  
+  if (error) {
+    return JSON.stringify(error);
+  }
+  if (loading) {
+    return 'loading...';
+  }
+  if (data) {
+    return data.events.length > 0 ? (
+      <FixedSizeList
+        height={370}
+        width={240}
+        itemSize={46}
+        itemCount={data.events.length}
+        itemData={{ events: data.events, showEvent }}
+      >
+        {renderRow}
+      </FixedSizeList> 
+    ) : null;
+  }
+}
+
+export default function Feed() {
+  const classes = useStyles();
+  return (
+    <>
+      <EventList />
+      <Divider />
+      <Gallery />
+    </>
+  )
 }

@@ -10,9 +10,9 @@ const initialState = {
 const mapReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'UPDATE_VIEWSTATE': {
-      return Object.assign({}, state, {
-        viewport: action.payload,
-      });
+      return {...state.viewport,
+        viewport: {...state.viewport, ...action.payload}
+      }
     }
     default: {
       return state;
