@@ -5,7 +5,7 @@ import {
   Map,
   Polyline,
   TileLayer,
-  ZoomControl
+  ZoomControl,
 } from 'react-leaflet';
 import PropTypes from 'prop-types';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
@@ -16,6 +16,7 @@ import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
 import 'leaflet/dist/leaflet.css';
 import ResourceMarker from '../../components/Resources/markers';
+import EventMarker from '../../components/Events/markers';
 import {gql, useSubscription} from '@apollo/client';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -60,6 +61,57 @@ const GET_RESOURCES = gql`
   }
 `;
 
+const EVENTS_SUB = gql`
+  subscription {
+    events(order_by: { created_at: desc }) {
+      id
+      created_at
+      description
+      event_comments(order_by: { created_at: asc }) {
+        user {
+          id
+          name
+          profile_picture
+          resource {
+            id
+            name
+          }
+        }
+        comment
+        created_at
+      }
+      user {
+        id
+        name
+        profile_picture
+        resource {
+          id
+          name
+        }
+      }
+      latitude
+      longitude
+      channel {
+        id
+        name
+      }
+      event_tags {
+        tag {
+          id
+          name
+          color
+          tag_parameters {
+            id
+            field_name
+            field_type
+          }
+        }
+        parameters
+      }
+    }
+  }
+`;
+
 export default function Home(props) {
   const { win } = props;
   const classes = useStyles();
@@ -69,6 +121,7 @@ export default function Home(props) {
   const dispatch = useDispatch();
   const { viewport } = useSelector((state) => state.mapReducer);
   const { data, loading, error } = useSubscription(GET_RESOURCES);
+  const { data: dataEvents, loading: loadingEvent } = useSubscription(EVENTS_SUB);
   const [historyLines, setHistoryLines] = useState({path:[], color: 'red'});
 
   const handleMoveend = (e) => {
@@ -106,7 +159,7 @@ export default function Home(props) {
 
   return (
     <div className={classes.root}>
-      <AppBar position="fixed" elevation={0} className={classes.appBar}>
+      <AppBar position="fixed" elevation={1} className={classes.appBar}>
         <Toolbar>
           <IconButton
             color="inherit"
@@ -134,7 +187,7 @@ export default function Home(props) {
             keepMounted: true, // Better open performance on mobile.
           }}
         >
-          <EventsFeed />
+          <EventsFeed events={dataEvents ? dataEvents : []} loading={loadingEvent}/>
         </Drawer>
       </Hidden>
       <Hidden xsDown implementation="css">
@@ -145,7 +198,7 @@ export default function Home(props) {
           variant="permanent"
           open
         >
-          <EventsFeed />
+          <EventsFeed events={dataEvents ? dataEvents : []} loading={loadingEvent} />
         </Drawer>
       </Hidden>
       <main className={classes.content}>
@@ -193,6 +246,13 @@ export default function Home(props) {
                 })}
               </LayerGroup>
 
+            </Overlay>
+            <Overlay checked name="Events">
+              <LayerGroup>
+                {dataEvents && dataEvents.events.map(event => {
+                  return <EventMarker key={event.id} event={event} center={{ lat: event.latitude, lng: event.longitude }} />
+                })}
+              </LayerGroup>
             </Overlay>
             <Overlay checked name="Paths">
               <LayerGroup>

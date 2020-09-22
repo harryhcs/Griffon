@@ -3,10 +3,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Divider, Typography, Grid } from '@material-ui/core';
-import LocationIcon from '@material-ui/icons/Place';
-
-import { FixedSizeList } from 'react-window';
+import { Divider, Typography, Grid, CircularProgress } from '@material-ui/core';
+import { FixedSizeList, FixedSizeGrid } from 'react-window';
 import moment from 'moment';
 
 import { gql, useSubscription } from '@apollo/client';
@@ -49,58 +47,19 @@ const useStyles = makeStyles(() => ({
   },
   galleryItem: {
     width: 120,
+  },
+  title: {
+    padding: 10,
+    backgroundColor: "#eee"
+  },
+  loading: {
+    height: (window.innerHeight - 64 - 100)/2,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 }));
-
-const EVENTS_SUB = gql`
-  subscription {
-    events(order_by: { created_at: desc }) {
-      id
-      created_at
-      description
-      event_comments(order_by: { created_at: asc }) {
-        user {
-          id
-          name
-          profile_picture
-          resource {
-            id
-            name
-          }
-        }
-        comment
-        created_at
-      }
-      user {
-        id
-        name
-        profile_picture
-        resource {
-          id
-          name
-        }
-      }
-      latitude
-      longitude
-      channel {
-        id
-        name
-      }
-      event_tags {
-        tag {
-          id
-          name
-          tag_parameters {
-            id
-            field_name
-            field_type
-          }
-        }
-        parameters
-      }
-    }
-  }
-`;
 
 const ATTACHMENT_SUB = gql`
   subscription {
@@ -113,11 +72,24 @@ const ATTACHMENT_SUB = gql`
   }
 `;
 
+function chunk(arr, size) {
+  let chunked = [];
+  for (let ele of arr) {
+    let last = chunked[chunked.length - 1];
+    if (!last || last.length === size) {
+      chunked.push([ele]);
+    } else {
+      last.push(ele);
+    }
+  }
+  return chunked;
+}
+
 function renderRow(props) {
   const classes = useStyles();
-  const { index, data } = props;
+  const { index, data, style } = props;
   return (
-    <Grid container className={classes.item} onClick={() => data.showEvent(data.events[index])}>
+    <Grid className={classes.item} container style={style} onClick={() => data.showEvent(data.events[index])}>
       <Grid item>
         <Typography className={classes.description}>
           {data.events[index].description}
@@ -140,63 +112,62 @@ function renderRow(props) {
         </Typography>
 
       </Grid>
-      {/* <Grid item>
-        {data.events[index].latitude && data.events[index].longitude ? (
-          <IconButton>
-            <LocationIcon color="secondary" />
-          </IconButton>
-        ) : (null)}
-      </Grid> */}
     </Grid>
   );
 }
-function renderImage(props) {
+
+const ImageCell = ({ columnIndex, rowIndex, style, data}) => {
+  const singleColumnIndex = columnIndex + rowIndex * 2
   const classes = useStyles();
-  const { index, data } = props;
   return (
-    <img className={classes.galleryItem} src={data.attachments[index].uri} />
-  );
-}
+    <img style={style} className={classes.galleryItem} src={data.attachments[singleColumnIndex].uri} />
+  )
+};
 
 function Gallery() {
+  const classes = useStyles();
   const { loading, error, data } = useSubscription(ATTACHMENT_SUB);
   if (error) {
     return JSON.stringify(error);
   }
   if (loading) {
-    return 'loading...';
+    return <div className={classes.loading}>
+      <CircularProgress color="secondary" size={20} />
+      <Typography>Loading gallery</Typography>
+    </div>;
   }
   if (data) {
     return data.attachments.length > 0 ? (
-      <FixedSizeList
-        height={window.innerHeight - 370-64}
+      <FixedSizeGrid
+        height={window.innerHeight - 326-64-105}
         width={240}
-        itemSize={46}
-        itemCount={data.attachments.length}
         itemData={{ attachments: data.attachments }}
+        columnCount={2}
+        columnWidth={120}
+        rowCount={data.attachments.length/2}
+        rowHeight={92}
       >
-        {renderImage}
-      </FixedSizeList>
+        {ImageCell}
+      </FixedSizeGrid>
     ) : null;
   }
 }
 
-function EventList({ showEvent }) {
-  
-  const { loading, error, data } = useSubscription(EVENTS_SUB);
-  
-  if (error) {
-    return JSON.stringify(error);
-  }
-  if (loading) {
-    return 'loading...';
-  }
+function EventList({ showEvent, data, loading }) {
+  const classes = useStyles();
+  if (loading ) {
+    return <div className={classes.loading}>
+      <CircularProgress color="secondary" size={20} />
+      <Typography>Loading events</Typography>
+    </div>
+  };
+
   if (data) {
     return data.events.length > 0 ? (
       <FixedSizeList
-        height={370}
+        height={326}
         width={240}
-        itemSize={46}
+        itemSize={80}
         itemCount={data.events.length}
         itemData={{ events: data.events, showEvent }}
       >
@@ -206,11 +177,19 @@ function EventList({ showEvent }) {
   }
 }
 
-export default function Feed() {
+export default function Feed(props) {
+  const {loading, events} = props;
   const classes = useStyles();
   return (
     <>
-      <EventList />
+      <div className={classes.title}>
+        <Typography variant="h6">Events</Typography>
+      </div>
+      <Divider />
+      <EventList loading={loading} data={events} />
+      <div className={classes.title}>
+        <Typography variant="h6">Gallery</Typography>
+      </div>
       <Divider />
       <Gallery />
     </>
