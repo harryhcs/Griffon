@@ -26,6 +26,7 @@ import SendIcon from "@material-ui/icons/Send";
 import moment from "moment";
 import { CircleMarker, Popup } from "react-leaflet";
 import { gql, useMutation, useSubscription } from "@apollo/client";
+import { Functions } from "@material-ui/icons";
 
 const ADD_COMMENT = gql`
   mutation AddComment($comment: String!, $event_id: Int!) {
@@ -39,38 +40,113 @@ const ADD_COMMENT = gql`
   }
 `;
 
-const GET_COMMENTS = gql`
+const EVENT_SUB = gql`
   subscription getComments($eventId: Int!) {
-    event_comments(where: { event_id: { _eq: $eventId } }) {
-      id
-      user {
+    events_by_pk(id: $eventId) {
+      event_comments {
         id
-        name
-        profile_picture
-        resource {
+        user {
           id
           name
+          profile_picture
+          resource {
+            id
+            name
+          }
+        }
+        comment
+        created_at
+      }
+      attachments {
+        id
+        created_at
+        uri
+        resourceByResource {
+          id
+          name
+          assigned_user {
+            id
+            name
+          }
         }
       }
-      comment
-      created_at
     }
   }
 `;
 
-export default function EventMarker(props) {
+const Comments = ({eventId}) => {
   const classes = useStyles();
-  const { center, event } = props;
   const el = useRef(null);
-  const [AddComment, { loading, data }] = useMutation(ADD_COMMENT);
-  const { loading: loadingComments, data: dataComments } = useSubscription(
-    GET_COMMENTS,
+  
+  const { loading: loadingEvent, data: dataEvent } = useSubscription(
+    EVENT_SUB,
     {
       variables: {
-        eventId: event.id,
+        eventId,
       },
     }
   );
+  
+  if (loadingEvent) {
+    return (
+      <Grid container className={classes.commentsContainer}>
+        "Loading..."
+      </Grid>
+    );
+  }
+  if (dataEvent) {
+    let comments = dataEvent.events_by_pk.event_comments
+      .concat(dataEvent.events_by_pk.attachments);
+    comments.sort((a, b) => a.created_at - b.created_at)
+    return (
+      <Grid container className={classes.commentsContainer}>
+        {comments.map((c) => {
+              return (
+                <Grid
+                  className={classes.commentLine}
+                  key={c.id}
+                  container
+                  direction="row"
+                  justify="flex-end"
+                  spacing={1}
+                >
+                  <Grid item lg={2}>
+                    <Avatar src={c.user ? c.user.profile_picture : null} />
+                  </Grid>
+                  <Grid item lg={10}>
+                    <div className={classes.commentResourceName}>
+                      {c.user ? c.user.name : null} (
+                      {c.user
+                        ? c.user.resource.name
+                        : c.resourceByResource
+                        ? c.resourceByResource.name
+                        : null}
+                      )
+                    </div>
+                    <div className={classes.comment}>
+                      {c.comment ? (
+                        c.comment
+                      ) : c.uri ? (
+                        <img src={c.uri} width="250" />
+                      ) : null}
+                    </div>
+                    <div className={classes.commentTimestamp}>
+                      {moment(c.created_at).fromNow()}
+                    </div>
+                  </Grid>
+                </Grid>
+              );
+            })}
+        <div id="el" ref={el} />
+      </Grid>
+    );
+  }
+}
+
+export default function EventMarker(props) {
+  const classes = useStyles();
+  const { center, event } = props;
+  const [AddComment, { loading, data }] = useMutation(ADD_COMMENT);
   const [comment, setComment] = useState();
 
   const handleComment = (e) => {
@@ -83,7 +159,6 @@ export default function EventMarker(props) {
       setComment("");
     }
   };
-
   return (
     <CircleMarker
       center={center}
@@ -161,45 +236,12 @@ export default function EventMarker(props) {
               <Divider />
             </Grid>
             <Grid item>
-              <Grid container className={classes.commentsContainer}>
-                <Grid item className={classes.comments} lg={12}>
+              <Grid container>
+                <Grid item className={classes.comments}>
                   <Typography className={classes.commentsTitle}>
                     Comments
                   </Typography>
-                  {loadingComments && "loading..."}
-                  {dataComments &&
-                    dataComments.event_comments.map((c) => (
-                      <div className={classes.comment} key={c.id}>
-                        <Grid
-                          container
-                          className={classes.commentIdentityContainer}
-                          spacing={1}
-                        >
-                          <Grid item>
-                            <Avatar src={c.user.profile_picture} />
-                          </Grid>
-                          <Grid item>
-                            <Typography className={classes.commentUserName}>
-                              {c.user.name}
-                            </Typography>
-                            <Typography className={classes.commentResourceName}>
-                              {c.user.resource.name}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                        <Grid container className={classes.commentContainer}>
-                          <Grid item>
-                            <Typography className={classes.commentTimestamp}>
-                              {moment(c.created_at).fromNow()}
-                            </Typography>
-                          </Grid>
-                          <Grid item>
-                            <Typography variant="body2">{c.comment}</Typography>
-                          </Grid>
-                        </Grid>
-                      </div>
-                    ))}
-                  <div id="el" ref={el} />
+                  <Comments eventId={event.id} />
                 </Grid>
               </Grid>
             </Grid>
@@ -241,19 +283,19 @@ export default function EventMarker(props) {
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: "white",
-    width: 600,
-    height: 400,
+    width: 500,
+    // height: 400,
   },
   title: {
     position: "relative",
     display: "block",
-    width: 550,
+    width: 450,
     overflow: "hidden",
     whiteSpace: "nowrap",
     textOverflow: "ellipsis",
   },
   content: {
-    width: 560,
+    width: 460,
     marginTop: 60,
   },
   avatar: {
@@ -278,24 +320,28 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold",
   },
   commentsContainer: {
-    paddingTop: 10,
-    paddingBottom: 0,
     paddingRight: 10,
     paddingLeft: 10,
+    height: 250,
+    overflow: "scroll",
   },
   commentContainer: {
-    marginTop: 10,
     flexDirection: "column",
   },
+  commentLine: {
+    marginBottom: 10,
+  },
   comment: {
-    marginBottom: 20,
+    fontSize: 12,
+    color: "black",
   },
   commentIdentityContainer: {
     flexDirection: "row",
     justifyContent: "flex-start",
+    alignItems: "flex-start",
+    alignContent: "flex-start",
   },
   commentsTitle: {
-    marginBottom: 20,
     fontWeight: "bold",
   },
   commentUserName: {},
@@ -304,7 +350,7 @@ const useStyles = makeStyles((theme) => ({
     color: "grey",
   },
   commentTimestamp: {
-    fontSize: 12,
+    fontSize: 10,
     color: "grey",
   },
   commentRoot: {

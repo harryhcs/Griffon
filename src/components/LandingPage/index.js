@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import { useAuth0 } from '../Auth';
 import './index.css';
 import Logo from '../../assets/images/logo.png';
+import LogoLoading from "../../assets/images/logoLoading.gif";
 
 const LandingPage = () => {
   const { loading, loginWithRedirect } = useAuth0();
@@ -28,7 +29,7 @@ const LandingPage = () => {
           <Grid item>
             {loading ? (
               <>
-                <img src={Logo} width={250} alt="Griffon Logo" />
+                <img src={LogoLoading} width={250} alt="Griffon Logo" />
               </>
             ) : (
               <div style={{ textAlign: 'center' }}>
