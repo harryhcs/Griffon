@@ -73,6 +73,7 @@ export default function ResourceMarker(props) {
     { dataHistory, loadingHistory, errorHistory },
   ] = useLazyQuery(GET_HISTORY, {
     onCompleted: (e) => {
+      console.log(e.resources_by_pk.geolocations);
       setHistoryLines({
         color: getRandomColor(),
         path: [
@@ -368,15 +369,6 @@ export default function ResourceMarker(props) {
               </Grid>
             </>
           )}
-          {/* <Grid container>
-            <Grid item>
-              <Button onClick={handleClick}>Show history for today</Button>
-              {showHistory && loadingGeolcation ? <CircularProgress /> : null}
-              {showHistory && dataGeolcation
-                ? handleAddHistory(dataGeolcation.resources_by_pk.geolocations)
-                : null}
-            </Grid>
-          </Grid> */}
         </div>
       </Popup>
     </Marker>

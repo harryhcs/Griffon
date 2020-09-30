@@ -18,29 +18,29 @@ import SearchIcon from "@material-ui/icons/Search";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
 import { useParams, Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { gql, useSubscription } from "@apollo/client";
 import moment from "moment";
 import Loading from "../../components/Loading";
 
-import Conversation from './conversation';
 
-moment.locale("en", {
-  relativeTime: {
-    past: "%s",
-    s: "s",
-    ss: "%ss",
-    m: "m",
-    mm: "%dm",
-    h: "h",
-    hh: "%dh",
-    d: "d",
-    dd: "%dd",
-    M: "m",
-    MM: "%dM",
-    y: "y",
-    yy: "%dY",
-  },
-});
+// moment.locale("en", {
+//   relativeTime: {
+//     past: "%s",
+//     s: "s",
+//     ss: "%ss",
+//     m: "m",
+//     mm: "%dm",
+//     h: "h",
+//     hh: "%dh",
+//     d: "d",
+//     dd: "%dd",
+//     M: "m",
+//     MM: "%dM",
+//     y: "y",
+//     yy: "%dY",
+//   },
+// });
 
 const CONVERASATIONS_SUB = gql`
   subscription {
@@ -75,7 +75,7 @@ const CONVERASATIONS_SUB = gql`
 `;
 const USERS_SUB = gql`
   subscription {
-    users(where: {organisation: {_eq: 1}}) {
+    users(where: { organisation: { _eq: 1 } }) {
       id
       fullname
       profile_picture
@@ -88,108 +88,110 @@ const USERS_SUB = gql`
 `;
 
 export default function Chat(props) {
+  const { handleToggleChat, showChat } = props;
   const classes = useStyles();
-//   const {data, loading, error} = useSubscription(CONVERASATIONS_SUB);
-  return (
-    <>
-      <Conversation id={5} />
-      {/* <div className={classes.root}>
-        <Grid container spacing={2} direction="column">
-          <Grid item>
-            <Typography variant="h6" className={classes.white}>
-              Messanger
-            </Typography>
-          </Grid>
-          <Grid item>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
-                <SearchIcon color="inherit" />
-              </div>
-              <Autocomplete
-                id="free-solo-demo"
-                freeSolo
-                options={[]}
-                renderInput={(params) => (
-                  <InputBase
-                    ref={params.InputProps.ref}
-                    placeholder="Search…"
-                    classes={{
-                      root: classes.inputRoot,
-                      input: classes.inputInput,
-                    }}
-                    inputProps={{ "aria-label": "search" }}
-                  />
-                )}
-                //   id="free-solo-demo"
-                //   getOptionSelected={(option, value) => option.name === value.name}
-                //   getOptionLabel={(option) => option.name}
-                //   options={[data ? data.users : []]}
-                //   loading={loading}
-                //   renderInput={(params) => (
+  const { data, loading, error } = useSubscription(CONVERASATIONS_SUB);
+  const dispatch = useDispatch();
+  const handleClickConversation = (id) => {
+    handleToggleChat();
+    dispatch({
+      type: "SET_CONVERSATION",
+      payload: {
+        id,
+      },
+    });
+    dispatch({
+      type: 'TOGGLE_CONVERSATION',
+    });
+  };
 
-                //   )}
-              />
+  return (
+    <div className={classes.root}>
+      <Grid container spacing={2} direction="column">
+        <Grid item>
+          <Typography variant="h6" className={classes.white}>
+            Griffonger
+          </Typography>
+        </Grid>
+        <Grid item>
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon color="inherit" />
             </div>
-          </Grid>
-          <Grid item>
-            {error && JSON.stringify(error)}
-            {loading ? (
-              <CircularProgress />
-            ) : data ? (
-              data.conversations.map((conversation) => (
-                <Grid
-                  key={conversation.id}
-                  container
-                  direction="column"
-                  spacing={2}
-                  className={classes.user}
-                >
-                  <Grid item>
-                    <Grid
-                      container
-                      direction="row"
-                      spacing={2}
-                      alignItems="center"
-                    >
-                      <Grid item>
-                        <Avatar
-                          src={
-                            conversation.isGroup
-                              ? null
-                              : conversation.conversationMembers[0].userByUser
-                                  .profile_picture
-                          }
-                        >
-                          {conversation.isGroup ? "G" : null}
-                        </Avatar>
-                      </Grid>
-                      <Grid item>
-                        <Typography
-                          variant="subtitle1"
-                          className={classes.white}
-                        >
-                          {conversation.isGroup
-                            ? conversation.name
+            <Autocomplete
+              id="free-solo-demo"
+              freeSolo
+              options={[]}
+              renderInput={(params) => (
+                <InputBase
+                  ref={params.InputProps.ref}
+                  placeholder="Search…"
+                  classes={{
+                    root: classes.inputRoot,
+                    input: classes.inputInput,
+                  }}
+                  inputProps={{ "aria-label": "search" }}
+                />
+              )}
+            />
+          </div>
+        </Grid>
+        <Grid item>
+          {error && JSON.stringify(error)}
+          {loading ? (
+            <CircularProgress />
+          ) : data ? (
+            data.conversations.map((conversation) => (
+              <Grid
+                key={conversation.id}
+                container
+                direction="column"
+                spacing={2}
+                className={classes.user}
+                onClick={() => handleClickConversation(conversation.id)}
+              >
+                <Grid item>
+                  <Grid
+                    container
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                  >
+                    <Grid item>
+                      <Avatar
+                        src={
+                          conversation.isGroup
+                            ? null
                             : conversation.conversationMembers[0].userByUser
-                                .fullname}
-                        </Typography>
-                        <Typography variant="caption" className={classes.white}>
-                          {conversation.chats.length
-                            ? `${conversation.chats[0].message} - ${moment(
-                                conversation.chats[0].created_at
-                              ).fromNow()}`
-                            : null}
-                        </Typography>
-                      </Grid>
+                                .profile_picture
+                        }
+                      >
+                        {conversation.isGroup ? "G" : null}
+                      </Avatar>
+                    </Grid>
+                    <Grid item>
+                      <Typography variant="subtitle1" className={classes.white}>
+                        {conversation.isGroup
+                          ? conversation.name
+                          : conversation.conversationMembers[0].userByUser
+                              .fullname}
+                      </Typography>
+                      <Typography variant="caption" className={classes.white}>
+                        {conversation.chats.length
+                          ? `${conversation.chats[0].message} - ${moment(
+                              conversation.chats[0].created_at
+                            ).fromNow()}`
+                          : null}
+                      </Typography>
                     </Grid>
                   </Grid>
                 </Grid>
-              ))
-            ) : null}
-          </Grid>
+              </Grid>
+            ))
+          ) : null}
         </Grid>
-      </div> */}
-    </>
+      </Grid>
+    </div>
   );
 }
 

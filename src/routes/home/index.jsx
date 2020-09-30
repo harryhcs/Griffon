@@ -27,6 +27,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Logo from '../../assets/images/logo.png';
 import EventsFeed from '../../components/Events/Feed';
 import Chat from '../../components/Chat';
+import Conversation from '../../components/Chat/conversation';
 
 const { BaseLayer, Overlay } = LayersControl;
 const drawerWidth = 240;
@@ -125,11 +126,12 @@ export default function Home(props) {
     win !== undefined ? () => win().document.body : undefined;
   const dispatch = useDispatch();
   const { viewport } = useSelector((state) => state.mapReducer);
+  const { showConversations, showConversation, conversationId } = useSelector((state) => state.chatReducer);
   const { data, loading, error } = useSubscription(GET_RESOURCES);
   const { data: dataEvents, loading: loadingEvent } = useSubscription(EVENTS_SUB);
   const [historyLines, setHistoryLines] = useState({ path: [], color: 'red' });
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -150,6 +152,12 @@ export default function Home(props) {
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
   };
+
+  const handleToggleChat = () => {
+    dispatch({
+      type: "TOGGLE_CONVERSATIONS",
+    })
+  }
 
   const menuId = 'primary-search-account-menu';
   const handleMoveend = (e) => {
@@ -212,8 +220,8 @@ export default function Home(props) {
       onClose={handleMobileMenuClose}
     >
       <MenuItem>
-        <IconButton aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="secondary">
+        <IconButton aria-label="show 4 new mails" color="inherit" onClick={handleToggleChat}>
+          <Badge badgeContent={2} color="secondary">
             <ChatIcon />
           </Badge>
         </IconButton>
@@ -270,8 +278,8 @@ export default function Home(props) {
           </div>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
-            <IconButton aria-label="show 4 new mails" color="inherit">
-              <Badge badgeContent={4} color="secondary">
+            <IconButton aria-label="show 4 new mails" color="inherit" onClick={handleToggleChat}>
+              <Badge badgeContent={2} color="secondary">
                 <ChatIcon color="primary" />
               </Badge>
             </IconButton>
@@ -304,7 +312,8 @@ export default function Home(props) {
           </div>
         </Toolbar>
       </AppBar>
-      <Chat />
+      {showConversations && <Chat handleToggleChat={handleToggleChat}/>}
+      {showConversation && <Conversation id={conversationId} />}
       <Hidden smUp implementation="css">
         <Drawer
           container={container}
